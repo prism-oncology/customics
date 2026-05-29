@@ -1,7 +1,5 @@
 """Maximum Mean Discrepancy (MMD) loss for VAE regularisation."""
 
-from __future__ import annotations
-
 import torch
 
 

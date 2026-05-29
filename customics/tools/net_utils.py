@@ -1,7 +1,5 @@
 """Building blocks for fully-connected neural network layers."""
 
-from __future__ import annotations
-
 import torch.nn as nn
 
 _ACTIVATION_MAP: dict[str, type[nn.Module]] = {

@@ -1,7 +1,5 @@
 """Survival analysis evaluation metrics."""
 
-from __future__ import annotations
-
 import numpy as np
 from lifelines.statistics import logrank_test
 from lifelines.utils import concordance_index

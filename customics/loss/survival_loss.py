@@ -1,7 +1,5 @@
 """Survival analysis loss functions (Cox partial likelihood)."""
 
-from __future__ import annotations
-
 import numpy as np
 import torch
 import torch.nn as nn

@@ -1,7 +1,5 @@
 """PyTorch Dataset classes for multi-omics data."""
 
-from __future__ import annotations
-
 import numpy as np
 import pandas as pd
 import torch

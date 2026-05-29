@@ -1,7 +1,5 @@
 """Probabilistic (VAE) decoder network."""
 
-from __future__ import annotations
-
 from collections import OrderedDict
 
 import torch

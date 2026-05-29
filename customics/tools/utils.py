@@ -1,7 +1,5 @@
 """Data utilities: sample alignment, splitting, and visualisation helpers."""
 
-from __future__ import annotations
-
 import os
 
 import matplotlib.pyplot as plt

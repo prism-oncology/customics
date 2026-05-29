@@ -51,9 +51,6 @@ dev = [
 Homepage = "https://github.com/prism-oncology/customics"
 Repository = "https://github.com/prism-oncology/customics"
 
-[project.scripts]
-customics = "customics.__main__:main"
-
 [tool.poe.tasks]
 docs = "mkdocs serve"
 pre-commit = "pre-commit run --all-files"

@@ -1,7 +1,5 @@
 """Multi-layer fully-connected classifier."""
 
-from __future__ import annotations
-
 from collections import OrderedDict
 
 import torch
