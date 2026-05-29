@@ -88,11 +88,9 @@ class TestCustOMICSInstantiation:
         )
         state = model.state_dict()
         # At least one key should belong to the autoencoders
-        assert any("autoencoders" in k for k in state.keys())
+        assert any("autoencoders" in k for k in state)
 
-    def test_invalid_dropout_raises(
-        self, central_params, classif_params, surv_params, train_params, device
-    ):
+    def test_invalid_dropout_raises(self, central_params, classif_params, surv_params, train_params, device):
         bad_source = {
             "rna": {
                 "input_dim": 50,
@@ -112,9 +110,7 @@ class TestCustOMICSInstantiation:
                 device,
             )
 
-    def test_missing_n_class_raises(
-        self, source_params, central_params, surv_params, train_params, device
-    ):
+    def test_missing_n_class_raises(self, source_params, central_params, surv_params, train_params, device):
         bad_classif = {
             "n_class": 1,
             "lambda": 1.0,
@@ -257,9 +253,7 @@ class TestCustOMICSInference:
         assert preds.min() >= 0
         assert preds.max() < 3  # N_CLASSES
 
-    def test_evaluate_classification_returns_dict(
-        self, fitted_model, omics_df, clinical_df
-    ):
+    def test_evaluate_classification_returns_dict(self, fitted_model, omics_df, clinical_df):
         result = fitted_model.evaluate(
             omics_df,
             clinical_df,

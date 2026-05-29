@@ -24,8 +24,8 @@ Choose one of the following, depending on your needs:
 === "Editable mode"
 
     ``` bash
-    git clone https://github.com/HakimBenkirane/CustOmics.git
-    cd sopa
+    git clone https://github.com/prism-oncology/customics.git
+    cd customics
 
     pip install  -e .
     ```
@@ -33,7 +33,7 @@ Choose one of the following, depending on your needs:
 === "uv (dev mode)"
 
     ``` bash
-    git clone https://github.com/HakimBenkirane/CustOmics.git
+    git clone https://github.com/prism-oncology/customics.git
     cd customics
 
     uv sync --dev

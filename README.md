@@ -1,36 +1,25 @@
-# customics
+<p align="center">
+  <img src="https://raw.githubusercontent.com/prism-oncology/customics/main/docs/assets/customics.png" alt="customics_logo" width="300"/>
+</p>
+<p align="center"><b><i>
+	CustOmics: a versatile deep-learning based strategy for multi-omics integration
+</b></i></p>
+
+<div align="center">
 
 [![PyPI version](https://badge.fury.io/py/customics.svg)](https://badge.fury.io/py/customics)
-[![CI](https://github.com/HakimBenkirane/CustOmics/actions/workflows/ci.yml/badge.svg)](https://github.com/HakimBenkirane/CustOmics/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Build](https://github.com/prism-oncology/customics/actions/workflows/ci.yml/badge.svg)](https://github.com/prism-oncology/customics/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**A versatile deep-learning based strategy for multi-omics integration**
+</div>
 
 `customics` is a Python package for integrating multiple genomic data modalities (RNA-seq, CNV, DNA methylation, …) using a hierarchical deep-learning architecture. It supports classification, survival outcome prediction, and SHAP-based explainability — all in a single scikit-learn-style API.
 
-> **Paper:** Benkirane et al. (2023). *CustOmics: A versatile deep-learning based strategy for multi-omics integration.* PLOS Computational Biology. doi:[10.1371/journal.pcbi.1010921](https://doi.org/10.1371/journal.pcbi.1010921)
-
----
-
-## Architecture
-
-```
-                    ┌──────────────────────────────┐
- RNA-seq ──► AE_1 ──┤                              │
-                    │  Central VAE (latent space)  ├──► Classifier
- CNV ────► AE_2 ──►─┤                              │
-                    │                              ├──► Survival predictor
- Methyl ──► AE_3 ──┤                              │
-                    └──────────────────────────────┘
-```
-
-**Phase 1** trains per-source autoencoders jointly with the task heads.
-**Phase 2** additionally trains the central VAE to consolidate the integrated representation.
-
----
-
 ## Installation
+
+`customics` can be installed via `pip`:
 
 ```bash
 pip install customics
@@ -39,14 +28,12 @@ pip install customics
 Or install from source:
 
 ```bash
-git clone https://github.com/HakimBenkirane/CustOmics.git
-cd CustOmics
+git clone https://github.com/prism-oncology/customics.git
+cd customics
 pip install -e .
 ```
 
----
-
-## Quick Start
+## Usage demo
 
 ```python
 import torch
@@ -121,71 +108,11 @@ model.explain(sample_ids, omics_train, clinical_df,
               source="rna", subtype="Her2", label="PAM50")
 ```
 
----
-
-## Data Format
-
-| Object | Type | Description |
-|--------|------|-------------|
-| `omics_train[source]` | `pd.DataFrame` | Rows = samples, columns = features. Index must be sample IDs. |
-| `clinical_df` | `pd.DataFrame` | Rows = samples. Must include label, event, and survival-time columns. Index must be sample IDs. |
-
-Sample IDs are automatically intersected across all sources and clinical data — no manual alignment is required.
-
----
-
-## API Reference
-
-### `CustOMICS`
-
-| Method | Description |
-|--------|-------------|
-| `fit(omics_train, clinical_df, label, event, surv_time, ...)` | Train the model |
-| `evaluate(omics_test, clinical_df, ..., task)` | Evaluate: returns C-index (survival) or metrics dict (classification) |
-| `predict(omics_df)` | Predict class labels |
-| `predict_survival(omics_df)` | Per-sample estimated survival functions |
-| `get_latent_representation(omics_df)` | Extract the central latent embedding |
-| `explain(sample_id, omics_df, ..., source, subtype)` | SHAP-based feature importance |
-| `plot_loss(show)` | Plot training/validation loss curves |
-| `plot_representation(omics_df, clinical_df, label, ...)` | t-SNE plot of the latent space |
-| `stratify(omics_df, clinical_df, event, surv_time, ...)` | Kaplan-Meier curves for risk groups |
-| `get_number_parameters()` | Total trainable parameter count |
-
-### Utility functions
-
-```python
-from customics import get_common_samples, get_sub_omics_df
-from customics.tools.utils import save_splits, get_splits
-```
-
-### Exceptions
-
-```python
-from customics import DataValidationError, ModelNotFittedError, ConfigurationError
-```
-
----
-
 ## Reproducing Paper Results
 
 Download TCGA data from the [GDC Data Portal](https://portal.gdc.cancer.gov/) or [cBioPortal](https://www.cbioportal.org/). Pre-computed 5-fold CV splits for BRCA, LUAD, UCEC, BLCA, GBM, OV, and PANCAN are included in the `data/splits/` directory.
 
-See `example_notebook.ipynb` for a complete end-to-end walkthrough using the bundled toy dataset.
-
----
-
-## Development
-
-```bash
-git clone https://github.com/HakimBenkirane/CustOmics.git
-cd CustOmics
-pip install -e ".[dev]"
-pytest
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
+See our documentation for a complete end-to-end walkthrough using the bundled toy dataset.
 
 ## Citation
 
@@ -205,9 +132,3 @@ If you use `customics` in your research, please cite:
     number    = {3}
 }
 ```
-
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).

@@ -9,7 +9,6 @@ import pandas as pd
 import pytest
 import torch
 
-
 N_SAMPLES = 20
 N_FEATURES_RNA = 50
 N_FEATURES_CNV = 30
@@ -26,18 +25,14 @@ def sample_ids():
 def rna_df(sample_ids):
     rng = np.random.default_rng(42)
     data = rng.random((N_SAMPLES, N_FEATURES_RNA)).astype(np.float32)
-    return pd.DataFrame(
-        data, index=sample_ids, columns=[f"gene_{i}" for i in range(N_FEATURES_RNA)]
-    )
+    return pd.DataFrame(data, index=sample_ids, columns=[f"gene_{i}" for i in range(N_FEATURES_RNA)])
 
 
 @pytest.fixture(scope="session")
 def cnv_df(sample_ids):
     rng = np.random.default_rng(43)
     data = rng.random((N_SAMPLES, N_FEATURES_CNV)).astype(np.float32)
-    return pd.DataFrame(
-        data, index=sample_ids, columns=[f"cnv_{i}" for i in range(N_FEATURES_CNV)]
-    )
+    return pd.DataFrame(data, index=sample_ids, columns=[f"cnv_{i}" for i in range(N_FEATURES_CNV)])
 
 
 @pytest.fixture(scope="session")

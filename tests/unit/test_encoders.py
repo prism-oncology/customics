@@ -1,18 +1,17 @@
 """Unit tests for encoder, decoder, and model building blocks."""
 
-import torch
 import pytest
+import torch
 
-from customics.encoders.encoder import Encoder
-from customics.encoders.probabilistic_encoder import ProbabilisticEncoder
 from customics.decoders.decoder import Decoder
 from customics.decoders.probabilistic_decoder import ProbabilisticDecoder
+from customics.encoders.encoder import Encoder
+from customics.encoders.probabilistic_encoder import ProbabilisticEncoder
+from customics.exceptions import ConfigurationError
 from customics.models.autoencoder import AutoEncoder
 from customics.models.vae import VAE
-from customics.tasks.survival import SurvivalNet
 from customics.tasks.classification import MultiClassifier
-from customics.exceptions import ConfigurationError
-
+from customics.tasks.survival import SurvivalNet
 
 BATCH = 8
 INPUT_DIM = 64
@@ -96,17 +95,13 @@ class TestVAE:
 
 class TestSurvivalNet:
     def test_output_shape(self):
-        net = SurvivalNet(
-            {"dims": [16, 8, 1], "drop": 0.1, "norm": False, "activation": "SELU"}
-        )
+        net = SurvivalNet({"dims": [16, 8, 1], "drop": 0.1, "norm": False, "activation": "SELU"})
         out = net(torch.randn(BATCH, 16))
         assert out.shape == (BATCH, 1)
 
     def test_invalid_activation_raises(self):
         with pytest.raises(ConfigurationError, match="Unsupported activation"):
-            SurvivalNet(
-                {"dims": [16, 1], "drop": 0.0, "norm": False, "activation": "invalid"}
-            )
+            SurvivalNet({"dims": [16, 1], "drop": 0.0, "norm": False, "activation": "invalid"})
 
 
 class TestMultiClassifier:

@@ -7,15 +7,11 @@ from customics.datasets.multi_omics_dataset import MultiOmicsDataset
 
 class TestMultiOmicsDataset:
     def test_len(self, omics_df, clinical_df, sample_ids):
-        ds = MultiOmicsDataset(
-            omics_df, clinical_df, sample_ids, "label", "OS", "OS.time"
-        )
+        ds = MultiOmicsDataset(omics_df, clinical_df, sample_ids, "label", "OS", "OS.time")
         assert len(ds) == len(sample_ids)
 
     def test_getitem_shapes(self, omics_df, clinical_df, sample_ids):
-        ds = MultiOmicsDataset(
-            omics_df, clinical_df, sample_ids, "label", "OS", "OS.time"
-        )
+        ds = MultiOmicsDataset(omics_df, clinical_df, sample_ids, "label", "OS", "OS.time")
         omics_tensors, lbl, os_time, os_event = ds[0]
         assert len(omics_tensors) == 2
         assert omics_tensors[0].shape == (50,)  # rna
@@ -24,9 +20,7 @@ class TestMultiOmicsDataset:
         assert isinstance(os_event, int)
 
     def test_getitem_dtype(self, omics_df, clinical_df, sample_ids):
-        ds = MultiOmicsDataset(
-            omics_df, clinical_df, sample_ids, "label", "OS", "OS.time"
-        )
+        ds = MultiOmicsDataset(omics_df, clinical_df, sample_ids, "label", "OS", "OS.time")
         omics_tensors, _, _, _ = ds[0]
         for t in omics_tensors:
             assert t.dtype == torch.float32
@@ -37,7 +31,5 @@ class TestMultiOmicsDataset:
         assert lbl == 0
 
     def test_get_samples(self, omics_df, clinical_df, sample_ids):
-        ds = MultiOmicsDataset(
-            omics_df, clinical_df, sample_ids, "label", "OS", "OS.time"
-        )
+        ds = MultiOmicsDataset(omics_df, clinical_df, sample_ids, "label", "OS", "OS.time")
         assert ds.get_samples() == sample_ids

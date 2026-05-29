@@ -1,30 +1,23 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "customics"
 version = "0.1.0"
 description = "A versatile deep-learning based strategy for multi-omics integration"
 readme = "README.md"
 license = { file = "LICENSE" }
-authors = [
-    { name = "Hakim Benkirane", email = "hakim.benkirane@centralesupelec.fr" },
-]
+authors = [{ name = "Hakim Benkirane", email = "hakim.benkirane@centralesupelec.fr" }]
 keywords = ["multi-omics", "deep-learning", "bioinformatics", "survival-analysis", "VAE"]
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-requires-python = ">=3.12"
-
 dependencies = [
     "torch>=2.0.0",
     "numpy>=1.24.0",
@@ -39,9 +32,9 @@ dependencies = [
     "shap>=0.51,<0.52",
 ]
 
-[project.optional-dependencies]
 [dependency-groups]
 dev = [
+    "ruff>=0.15.15",
     "mkdocs-autorefs>=1.4.4",
     "mkdocstrings>=1.0.4",
     "mkdocstrings-python>=2.0.3",
@@ -55,30 +48,101 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/HakimBenkirane/CustOmics"
-Repository = "https://github.com/HakimBenkirane/CustOmics"
-"Bug Tracker" = "https://github.com/HakimBenkirane/CustOmics/issues"
-Paper = "https://doi.org/10.1371/journal.pcbi.1010921"
+Homepage = "https://github.com/prism-oncology/customics"
+Repository = "https://github.com/prism-oncology/customics"
 
 [project.scripts]
 customics = "customics.__main__:main"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-dir]
-"" = "src"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "--tb=short -q"
-
-[tool.coverage.run]
-source = ["customics"]
-omit = ["tests/*"]
 
 [tool.poe.tasks]
 docs = "mkdocs serve"
 pre-commit = "pre-commit run --all-files"
 test = "pytest --cov --cov-config=pyproject.toml --cov-report=html --disable-warnings"
 test_no_multimodal = "pytest -m 'not multimodal' --cov --cov-config=pyproject.toml --cov-report=html --disable-warnings"
+
+[tool.hatch.build.targets.sdist]
+include = ["customics"]
+
+[tool.hatch.build.targets.wheel]
+include = ["customics"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--tb=short -q"
+
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+fix = true
+
+[tool.ruff.lint]
+select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # mccabe
+    "C90",
+    # pycodestyle
+    "E",
+    "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+    # tryceratops
+    "TRY",
+]
+ignore = [
+    # LineTooLong
+    "E501",
+    # DoNotAssignLambda
+    "E731",
+    # DoNotUseAssert
+    "S101",
+    "TRY003",
+    "RUF012",
+    "B904",
+    "E722",
+    "C901",
+    "S314",   # Using `xml` to parse untrusted data is known to be vulnerable to XML attacks; use `defusedxml` equivalents
+    "S602",   # `subprocess` call with `shell=True` identified, security issue
+    "C901",   # Function is too complex (too many arguments)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+"__init__.py" = ["F401", "I001"]
+"main.py" = ["F401"]
+"*.ipynb" = ["F401", "RUF001", "RUF003", "RUF005"]
+
+[tool.ruff.format]
+preview = true
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.coverage.run]
+branch = true
+source = ["customics"]

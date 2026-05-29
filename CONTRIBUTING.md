@@ -11,16 +11,18 @@ You can contribute by:
 ## Quickstart
 
 ```sh
-git clone https://github.com/HakimBenkirane/CustOmics.git
-cd CustOmics
+git clone https://github.com/prism-oncology/customics.git
+
+cd customics
 uv sync --dev
-pre-commit install
+
+uv run poe pre-commit
 uv run pytest
 ```
 
 ## Reporting Issues
 
-Please open an issue at [github.com/HakimBenkirane/CustOmics/issues](https://github.com/HakimBenkirane/CustOmics/issues) and include:
+Please open an issue at [github.com/prism-oncology/customics/issues](https://github.com/prism-oncology/customics/issues) and include:
 - A minimal reproducible example
 - Your Python and PyTorch versions
 - The full traceback if applicable
@@ -50,7 +52,7 @@ We use [`pre-commit`](https://pre-commit.com/) to run code quality checks before
 Run checks manually if needed:
 
 ```sh
-pre-commit run --all-files
+uv run poe pre-commit
 ```
 
 General conventions:
