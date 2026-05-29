@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -114,20 +113,18 @@ class CustOMICS(nn.Module):
 
     def __init__(
         self,
-        source_params: Dict[str, Dict],
-        central_params: Dict,
-        classif_params: Dict,
-        surv_params: Dict,
-        train_params: Dict,
+        source_params: dict[str, dict],
+        central_params: dict,
+        classif_params: dict,
+        surv_params: dict,
+        train_params: dict,
         device: torch.device,
     ) -> None:
         super().__init__()
-        self._validate_params(
-            source_params, central_params, classif_params, train_params
-        )
+        self._validate_params(source_params, central_params, classif_params, train_params)
 
         self.device = device
-        self.source_names: List[str] = list(source_params.keys())
+        self.source_names: list[str] = list(source_params.keys())
         self.n_source = len(self.source_names)
         self.beta = central_params["beta"]
         self.num_classes = classif_params["n_class"]
@@ -148,28 +145,26 @@ class CustOMICS(nn.Module):
         # ------------------------------------------------------------------ #
         # Per-source autoencoders (nn.ModuleList so PyTorch tracks them)
         # ------------------------------------------------------------------ #
-        self.autoencoders = nn.ModuleList(
-            [
-                AutoEncoder(
-                    encoder=Encoder(
-                        input_dim=source_params[s]["input_dim"],
-                        hidden_dim=source_params[s]["hidden_dim"],
-                        latent_dim=source_params[s]["latent_dim"],
-                        norm_layer=source_params[s]["norm"],
-                        dropout=source_params[s]["dropout"],
-                    ),
-                    decoder=Decoder(
-                        latent_dim=source_params[s]["latent_dim"],
-                        hidden_dim=source_params[s]["hidden_dim"],
-                        output_dim=source_params[s]["input_dim"],
-                        norm_layer=source_params[s]["norm"],
-                        dropout=source_params[s]["dropout"],
-                    ),
-                    device=device,
-                )
-                for s in self.source_names
-            ]
-        )
+        self.autoencoders = nn.ModuleList([
+            AutoEncoder(
+                encoder=Encoder(
+                    input_dim=source_params[s]["input_dim"],
+                    hidden_dim=source_params[s]["hidden_dim"],
+                    latent_dim=source_params[s]["latent_dim"],
+                    norm_layer=source_params[s]["norm"],
+                    dropout=source_params[s]["dropout"],
+                ),
+                decoder=Decoder(
+                    latent_dim=source_params[s]["latent_dim"],
+                    hidden_dim=source_params[s]["hidden_dim"],
+                    output_dim=source_params[s]["input_dim"],
+                    norm_layer=source_params[s]["norm"],
+                    dropout=source_params[s]["dropout"],
+                ),
+                device=device,
+            )
+            for s in self.source_names
+        ])
 
         # ------------------------------------------------------------------ #
         # Central VAE
@@ -202,22 +197,20 @@ class CustOMICS(nn.Module):
             dropout=classif_params["dropout"],
             class_dim=classif_params["hidden_layers"],
         )
-        self.survival_predictor = SurvivalNet(
-            {
-                "drop": surv_params["dropout"],
-                "norm": surv_params["norm"],
-                "dims": [central_params["latent_dim"]] + surv_params["dims"] + [1],
-                "activation": surv_params["activation"],
-            }
-        )
+        self.survival_predictor = SurvivalNet({
+            "drop": surv_params["dropout"],
+            "norm": surv_params["norm"],
+            "dims": [central_params["latent_dim"]] + surv_params["dims"] + [1],
+            "activation": surv_params["activation"],
+        })
 
         self._relocate()
         self.optimizer = self._build_optimizer()
 
         # Filled during fit()
-        self.history: List[Tuple] = []
-        self.label_encoder: Optional[LabelEncoder] = None
-        self.one_hot_encoder: Optional[OneHotEncoder] = None
+        self.history: list[tuple] = []
+        self.label_encoder: LabelEncoder | None = None
+        self.one_hot_encoder: OneHotEncoder | None = None
         self.baseline = None
 
     # ------------------------------------------------------------------ #
@@ -226,30 +219,24 @@ class CustOMICS(nn.Module):
 
     @staticmethod
     def _validate_params(
-        source_params: Dict,
-        central_params: Dict,
-        classif_params: Dict,
-        train_params: Dict,
+        source_params: dict,
+        central_params: dict,
+        classif_params: dict,
+        train_params: dict,
     ) -> None:
         if not source_params:
             raise ConfigurationError("source_params must contain at least one source.")
         for name, sp in source_params.items():
             for key in ("input_dim", "hidden_dim", "latent_dim", "norm", "dropout"):
                 if key not in sp:
-                    raise ConfigurationError(
-                        f"source_params['{name}'] is missing required key '{key}'."
-                    )
+                    raise ConfigurationError(f"source_params['{name}'] is missing required key '{key}'.")
             if not 0.0 <= sp["dropout"] <= 1.0:
-                raise ConfigurationError(
-                    f"dropout for source '{name}' must be in [0, 1], got {sp['dropout']}."
-                )
+                raise ConfigurationError(f"dropout for source '{name}' must be in [0, 1], got {sp['dropout']}.")
         if classif_params.get("n_class", 0) < 2:
             raise ConfigurationError("classif_params['n_class'] must be >= 2.")
         for key in ("switch", "lr"):
             if key not in train_params:
-                raise ConfigurationError(
-                    f"train_params is missing required key '{key}'."
-                )
+                raise ConfigurationError(f"train_params is missing required key '{key}'.")
 
     def _build_optimizer(self) -> Adam:
         return Adam(self.parameters(), lr=self.lr)
@@ -262,9 +249,7 @@ class CustOMICS(nn.Module):
 
     def _require_fitted(self) -> None:
         if not self._is_fitted:
-            raise ModelNotFittedError(
-                "This CustOMICS instance has not been fitted yet. Call fit() first."
-            )
+            raise ModelNotFittedError("This CustOMICS instance has not been fitted yet. Call fit() first.")
 
     # ------------------------------------------------------------------ #
     # Phase management
@@ -277,9 +262,7 @@ class CustOMICS(nn.Module):
     # Forward pass (nn.Module interface)
     # ------------------------------------------------------------------ #
 
-    def forward(
-        self, x: List[torch.Tensor]
-    ) -> Tuple[List[torch.Tensor], List[torch.Tensor], torch.Tensor]:
+    def forward(self, x: list[torch.Tensor]) -> tuple[list[torch.Tensor], list[torch.Tensor], torch.Tensor]:
         """Full forward pass through per-source AEs and central encoder.
 
         Parameters
@@ -308,16 +291,14 @@ class CustOMICS(nn.Module):
     # Internal helpers for training
     # ------------------------------------------------------------------ #
 
-    def _compute_training_loss(
-        self, x: List[torch.Tensor]
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _compute_training_loss(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Return ``(latent_z, reconstruction_loss)`` for the current phase.
 
         Phase 1 returns the first source's representation; phase 2 returns the
         central VAE mean.  Both are used as input to the task heads during
         training.
         """
-        lt_rep: List[torch.Tensor] = []
+        lt_rep: list[torch.Tensor] = []
         recon_loss = torch.tensor(0.0, device=self.device)
         for xi, ae in zip(x, self.autoencoders):
             _, rep = ae(xi)
@@ -332,7 +313,7 @@ class CustOMICS(nn.Module):
         mean, _ = self.central_layer.encoder(central_concat)
         return mean, recon_loss
 
-    def _get_central_representation(self, x: List[torch.Tensor]) -> torch.Tensor:
+    def _get_central_representation(self, x: list[torch.Tensor]) -> torch.Tensor:
         """Always return the central VAE mean (used for inference)."""
         lt_rep = [ae(xi)[1] for xi, ae in zip(x, self.autoencoders)]
         mean, _ = self.central_layer.encoder(torch.cat(lt_rep, dim=1))
@@ -352,7 +333,7 @@ class CustOMICS(nn.Module):
 
     def _train_step(
         self,
-        x: List[torch.Tensor],
+        x: list[torch.Tensor],
         labels: torch.Tensor,
         os_time: torch.Tensor,
         os_event: torch.Tensor,
@@ -369,16 +350,12 @@ class CustOMICS(nn.Module):
                 task_loss = task_loss + self.lambda_survival * CoxLoss(
                     os_time, os_event, self.survival_predictor(z), self.device
                 )
-                task_loss = task_loss + self.lambda_classif * classification_loss(
-                    "CE", self.classifier(z), labels
-                )
+                task_loss = task_loss + self.lambda_classif * classification_loss("CE", self.classifier(z), labels)
         else:
             z = z_or_reps
             task_loss = self.lambda_survival * CoxLoss(
                 os_time, os_event, self.survival_predictor(z), self.device
-            ) + self.lambda_classif * classification_loss(
-                "CE", self.classifier(z), labels
-            )
+            ) + self.lambda_classif * classification_loss("CE", self.classifier(z), labels)
 
         return recon_loss + task_loss
 
@@ -404,16 +381,16 @@ class CustOMICS(nn.Module):
 
     def fit(
         self,
-        omics_train: Dict[str, pd.DataFrame],
+        omics_train: dict[str, pd.DataFrame],
         clinical_df: pd.DataFrame,
         label: str,
         event: str,
         surv_time: str,
-        omics_val: Optional[Dict[str, pd.DataFrame]] = None,
+        omics_val: dict[str, pd.DataFrame] | None = None,
         batch_size: int = 32,
         n_epochs: int = 30,
         verbose: bool = False,
-    ) -> "CustOMICS":
+    ) -> CustOMICS:
         """Train the customics model.
 
         Parameters
@@ -451,36 +428,26 @@ class CustOMICS(nn.Module):
 
         encoded_clinical = clinical_df.copy()
         self.label_encoder = LabelEncoder().fit(encoded_clinical[label].values)
-        encoded_clinical[label] = self.label_encoder.transform(
-            encoded_clinical[label].values
-        )
+        encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
         # Fit OHE on integer-encoded labels so it can transform integer y_true at eval time
-        self.one_hot_encoder = OneHotEncoder(sparse_output=False).fit(
-            encoded_clinical[label].values.reshape(-1, 1)
-        )
+        self.one_hot_encoder = OneHotEncoder(sparse_output=False).fit(encoded_clinical[label].values.reshape(-1, 1))
 
-        loader_kw: Dict = (
-            {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
-        )
+        loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
 
-        lt_train = get_common_samples(list(omics_train.values()) + [clinical_df])
+        lt_train = get_common_samples([*list(omics_train.values()), clinical_df])
         self.baseline = self._compute_baseline(clinical_df, lt_train, event, surv_time)
         train_loader = DataLoader(
-            MultiOmicsDataset(
-                omics_train, encoded_clinical, lt_train, label, event, surv_time
-            ),
+            MultiOmicsDataset(omics_train, encoded_clinical, lt_train, label, event, surv_time),
             batch_size=batch_size,
             shuffle=True,
             **loader_kw,
         )
 
-        val_loader: Optional[DataLoader] = None
+        val_loader: DataLoader | None = None
         if omics_val is not None:
-            lt_val = get_common_samples(list(omics_val.values()) + [clinical_df])
+            lt_val = get_common_samples([*list(omics_val.values()), clinical_df])
             val_loader = DataLoader(
-                MultiOmicsDataset(
-                    omics_val, encoded_clinical, lt_val, label, event, surv_time
-                ),
+                MultiOmicsDataset(omics_val, encoded_clinical, lt_val, label, event, surv_time),
                 batch_size=batch_size,
                 shuffle=False,
                 **loader_kw,
@@ -504,16 +471,14 @@ class CustOMICS(nn.Module):
             else:
                 self.history.append((train_loss,))
                 if verbose:
-                    logger.info(
-                        "Epoch %d/%d | train=%.4f", epoch + 1, n_epochs, train_loss
-                    )
+                    logger.info("Epoch %d/%d | train=%.4f", epoch + 1, n_epochs, train_loss)
 
         self._is_fitted = True
         return self
 
     def _validate_fit_inputs(
         self,
-        omics_train: Dict[str, pd.DataFrame],
+        omics_train: dict[str, pd.DataFrame],
         clinical_df: pd.DataFrame,
         label: str,
         event: str,
@@ -522,27 +487,22 @@ class CustOMICS(nn.Module):
         for col in (label, event, surv_time):
             if col not in clinical_df.columns:
                 raise DataValidationError(
-                    f"Column '{col}' not found in clinical_df. "
-                    f"Available: {list(clinical_df.columns)}."
+                    f"Column '{col}' not found in clinical_df. Available: {list(clinical_df.columns)}."
                 )
         for source, df in omics_train.items():
             overlap = set(df.index) & set(clinical_df.index)
             if not overlap:
-                raise DataValidationError(
-                    f"Source '{source}' shares no sample IDs with clinical_df."
-                )
+                raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_df.")
 
     def _compute_baseline(
         self,
         clinical_df: pd.DataFrame,
-        lt_samples: List[str],
+        lt_samples: list[str],
         event: str,
         surv_time: str,
     ):
         kmf = KaplanMeierFitter()
-        kmf.fit(
-            clinical_df.loc[lt_samples, surv_time], clinical_df.loc[lt_samples, event]
-        )
+        kmf.fit(clinical_df.loc[lt_samples, surv_time], clinical_df.loc[lt_samples, event])
         return kmf.survival_function_
 
     # ------------------------------------------------------------------ #
@@ -551,7 +511,7 @@ class CustOMICS(nn.Module):
 
     def get_latent_representation(
         self,
-        omics_df: Dict[str, pd.DataFrame],
+        omics_df: dict[str, pd.DataFrame],
     ) -> np.ndarray:
         """Compute the integrated central latent representation.
 
@@ -572,15 +532,12 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        x = [
-            torch.tensor(omics_df[s].values, dtype=torch.float32).to(self.device)
-            for s in self.source_names
-        ]
+        x = [torch.tensor(omics_df[s].values, dtype=torch.float32).to(self.device) for s in self.source_names]
         with torch.no_grad():
             z = self._get_central_representation(x)
         return z.cpu().numpy()
 
-    def predict(self, omics_df: Dict[str, pd.DataFrame]) -> np.ndarray:
+    def predict(self, omics_df: dict[str, pd.DataFrame]) -> np.ndarray:
         """Predict class labels.
 
         Parameters
@@ -600,16 +557,12 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        z = torch.tensor(
-            self.get_latent_representation(omics_df), dtype=torch.float32
-        ).to(self.device)
+        z = torch.tensor(self.get_latent_representation(omics_df), dtype=torch.float32).to(self.device)
         with torch.no_grad():
             logits = self.classifier(z)
         return torch.argmax(logits, dim=1).cpu().numpy()
 
-    def predict_survival(
-        self, omics_df: Dict[str, pd.DataFrame]
-    ) -> Dict[str, pd.DataFrame]:
+    def predict_survival(self, omics_df: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         """Compute patient-level estimated survival functions.
 
         Parameters
@@ -629,15 +582,11 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         lt_samples = get_common_samples(list(omics_df.values()))
-        z = torch.tensor(
-            self.get_latent_representation(omics_df), dtype=torch.float32
-        ).to(self.device)
+        z = torch.tensor(self.get_latent_representation(omics_df), dtype=torch.float32).to(self.device)
         self._set_eval_mode()
         with torch.no_grad():
             risk_scores = self.survival_predictor(z).cpu().numpy()
-        return {
-            s: self.baseline * np.exp(r[0]) for s, r in zip(lt_samples, risk_scores)
-        }
+        return {s: self.baseline * np.exp(r[0]) for s, r in zip(lt_samples, risk_scores)}
 
     def source_predict(self, x: torch.Tensor, source: str) -> torch.Tensor:
         """Predict class logits from a single-source input tensor.
@@ -657,9 +606,7 @@ class CustOMICS(nn.Module):
             Class logits, shape ``(batch, n_class)``.
         """
         if source not in self.source_names:
-            raise ValueError(
-                f"Source '{source}' not recognised. Known sources: {self.source_names}."
-            )
+            raise ValueError(f"Source '{source}' not recognised. Known sources: {self.source_names}.")
         idx = self.source_names.index(source)
         z = self.autoencoders[idx].encoder(x)
         return self.classifier(z)
@@ -670,7 +617,7 @@ class CustOMICS(nn.Module):
 
     def evaluate(
         self,
-        omics_test: Dict[str, pd.DataFrame],
+        omics_test: dict[str, pd.DataFrame],
         clinical_df: pd.DataFrame,
         label: str,
         event: str,
@@ -678,7 +625,7 @@ class CustOMICS(nn.Module):
         task: str,
         batch_size: int = 32,
         plot_roc: bool = False,
-    ) -> Union[float, Dict[str, float]]:
+    ) -> float | dict[str, float]:
         """Evaluate the model on held-out data.
 
         Parameters
@@ -717,23 +664,15 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         if task not in ("classification", "survival"):
-            raise ValueError(
-                f"task must be 'classification' or 'survival', got '{task}'."
-            )
+            raise ValueError(f"task must be 'classification' or 'survival', got '{task}'.")
 
         encoded_clinical = clinical_df.copy()
-        encoded_clinical[label] = self.label_encoder.transform(
-            encoded_clinical[label].values
-        )
+        encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
 
-        loader_kw: Dict = (
-            {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
-        )
-        lt_samples = get_common_samples(list(omics_test.values()) + [clinical_df])
+        loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
+        lt_samples = get_common_samples([*list(omics_test.values()), clinical_df])
         test_loader = DataLoader(
-            MultiOmicsDataset(
-                omics_test, encoded_clinical, lt_samples, label, event, surv_time
-            ),
+            MultiOmicsDataset(omics_test, encoded_clinical, lt_samples, label, event, surv_time),
             batch_size=batch_size,
             shuffle=False,
             **loader_kw,
@@ -780,9 +719,7 @@ class CustOMICS(nn.Module):
                 n_classes=self.num_classes,
                 var_names=np.unique(clinical_df[label].values.tolist()).tolist(),
             )
-        return multi_classification_evaluation(
-            y_true, y_pred, y_proba, ohe=self.one_hot_encoder
-        )
+        return multi_classification_evaluation(y_true, y_pred, y_proba, ohe=self.one_hot_encoder)
 
     # ------------------------------------------------------------------ #
     # Explainability
@@ -790,8 +727,8 @@ class CustOMICS(nn.Module):
 
     def explain(
         self,
-        sample_id: List[str],
-        omics_df: Dict[str, pd.DataFrame],
+        sample_id: list[str],
+        omics_df: dict[str, pd.DataFrame],
         clinical_df: pd.DataFrame,
         source: str,
         subtype: str,
@@ -828,8 +765,9 @@ class CustOMICS(nn.Module):
         ModelNotFittedError
             If called before ``fit()``.
         """
-        import shap
         import matplotlib.pyplot as plt
+        import shap
+
         from customics.explain.shap import (
             ModelWrapper,
             addToTensor,
@@ -841,9 +779,7 @@ class CustOMICS(nn.Module):
         self._require_fitted()
         expr_df = omics_df[source]
         sample_id = list(set(sample_id) & set(expr_df.index))
-        phenotype = processPhenotypeDataForSamples(
-            clinical_df, sample_id, self.label_encoder
-        )
+        phenotype = processPhenotypeDataForSamples(clinical_df, sample_id, self.label_encoder)
         condition = phenotype[label] == subtype
 
         expr_df = expr_df.loc[sample_id, :]
@@ -899,7 +835,7 @@ class CustOMICS(nn.Module):
 
     def plot_representation(
         self,
-        omics_df: Dict[str, pd.DataFrame],
+        omics_df: dict[str, pd.DataFrame],
         clinical_df: pd.DataFrame,
         label: str,
         filename: str,
@@ -929,12 +865,12 @@ class CustOMICS(nn.Module):
 
     def stratify(
         self,
-        omics_df: Dict[str, pd.DataFrame],
+        omics_df: dict[str, pd.DataFrame],
         clinical_df: pd.DataFrame,
         event: str,
         surv_time: str,
         plot_title: str = "",
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
         show: bool = True,
     ) -> None:
         """Stratify patients by predicted risk and plot Kaplan-Meier curves.
@@ -958,9 +894,7 @@ class CustOMICS(nn.Module):
         """
         from customics.visualization import plot_survival_stratification as _plot
 
-        _plot(
-            self, omics_df, clinical_df, event, surv_time, plot_title, save_path, show
-        )
+        _plot(self, omics_df, clinical_df, event, surv_time, plot_title, save_path, show)
 
     # ---------------------------------------------------------------------- #
     # Serialisation
@@ -994,7 +928,7 @@ class CustOMICS(nn.Module):
         logger.info("Model saved to %s", path)
 
     @classmethod
-    def load(cls, path: str, device: Optional[torch.device] = None) -> "CustOMICS":
+    def load(cls, path: str, device: torch.device | None = None) -> CustOMICS:
         """Load a model previously saved with :meth:`save`.
 
         Parameters

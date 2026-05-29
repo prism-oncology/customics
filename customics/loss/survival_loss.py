@@ -41,9 +41,7 @@ def CoxLoss(
     R_mat = torch.FloatTensor(R_mat).to(device)
     theta = hazard_pred.reshape(-1)
     exp_theta = torch.exp(theta)
-    return -torch.mean(
-        (theta - torch.log(torch.sum(exp_theta * R_mat, dim=1))) * censor
-    )
+    return -torch.mean((theta - torch.log(torch.sum(exp_theta * R_mat, dim=1))) * censor)
 
 
 class NegativeLogLikelihood(nn.Module):
@@ -72,9 +70,5 @@ class NegativeLogLikelihood(nn.Module):
         log_loss = torch.sum(log_loss, dim=0) / torch.sum(mask, dim=0)
         log_loss = torch.log(log_loss).reshape(-1, 1)
         neg_log_loss = -torch.sum((risk_pred - log_loss) * e) / torch.sum(e)
-        l2_loss = sum(
-            torch.norm(w, p=2)
-            for name, w in model.named_parameters()
-            if "weight" in name
-        )
+        l2_loss = sum(torch.norm(w, p=2) for name, w in model.named_parameters() if "weight" in name)
         return neg_log_loss + self.l2_reg * l2_loss

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import List, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -36,9 +35,9 @@ class ProbabilisticEncoder(nn.Module):
     def __init__(
         self,
         input_dim: int,
-        hidden_dim: List[int],
+        hidden_dim: list[int],
         latent_dim: int,
-        norm_layer: Union[type, bool] = nn.BatchNorm1d,
+        norm_layer: type | bool = nn.BatchNorm1d,
         leaky_slope: float = 0.2,
         dropout: float = 0.0,
     ) -> None:
@@ -81,7 +80,7 @@ class ProbabilisticEncoder(nn.Module):
             normalization=False,
         )
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the posterior mean and log-variance.
 
         Parameters

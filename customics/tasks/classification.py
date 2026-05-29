@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import List
 
 import torch
 import torch.nn as nn
@@ -42,7 +41,7 @@ class MultiClassifier(nn.Module):
         norm_layer: type = nn.BatchNorm1d,
         leaky_slope: float = 0.2,
         dropout: float = 0.0,
-        class_dim: List[int] = None,
+        class_dim: list[int] | None = None,
     ) -> None:
         super().__init__()
         if class_dim is None:

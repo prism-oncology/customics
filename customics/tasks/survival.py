@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 import torch
 import torch.nn as nn
 
 from customics.exceptions import ConfigurationError
-
 
 _ACTIVATIONS: dict[str, type[nn.Module]] = {
     "SELU": nn.SELU,
@@ -47,20 +44,17 @@ class SurvivalNet(nn.Module):
     >>> hazard = net(torch.randn(8, 128))   # shape (8, 1)
     """
 
-    def __init__(self, config: Dict) -> None:
+    def __init__(self, config: dict) -> None:
         super().__init__()
         self.drop: float = config["drop"]
         self.norm: bool = config["norm"]
-        self.dims: List[int] = config["dims"]
+        self.dims: list[int] = config["dims"]
         self.activation: str = config["activation"]
         self.model = self._build_network()
 
     def _build_network(self) -> nn.Sequential:
         if self.activation not in _ACTIVATIONS:
-            raise ConfigurationError(
-                f"Unsupported activation '{self.activation}'. "
-                f"Choose from {sorted(_ACTIVATIONS)}."
-            )
+            raise ConfigurationError(f"Unsupported activation '{self.activation}'. Choose from {sorted(_ACTIVATIONS)}.")
         layers: list[nn.Module] = []
         for i in range(len(self.dims) - 1):
             if i > 0 and self.drop:

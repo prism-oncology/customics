@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 from sklearn import metrics
 from sklearn.metrics import auc, roc_auc_score, roc_curve
@@ -46,9 +44,9 @@ def multi_classification_evaluation(
     y_pred_proba: np.ndarray,
     average: str = "weighted",
     save_confusion: bool = False,
-    filename: Optional[str] = None,
-    ohe: Optional[OneHotEncoder] = None,
-) -> Dict[str, float]:
+    filename: str | None = None,
+    ohe: OneHotEncoder | None = None,
+) -> dict[str, float]:
     """Compute a standard classification metrics dictionary.
 
     Parameters
@@ -74,7 +72,7 @@ def multi_classification_evaluation(
         Keys: ``'Accuracy'``, ``'F1-score'``, ``'Precision'``, ``'Recall'``,
         ``'AUC'``.
     """
-    scores: Dict[str, float] = {
+    scores: dict[str, float] = {
         "Accuracy": metrics.accuracy_score(y_true, y_pred),
         "F1-score": metrics.f1_score(y_true, y_pred, average=average),
         "Precision": metrics.precision_score(y_true, y_pred, average=average),
@@ -104,7 +102,7 @@ def plot_roc_multiclass(
     y_pred_proba: np.ndarray,
     filename: str = "",
     n_classes: int = 2,
-    var_names: Optional[List[str]] = None,
+    var_names: list[str] | None = None,
 ) -> None:
     """Plot per-class ROC curves for a multi-class model.
 
@@ -130,9 +128,7 @@ def plot_roc_multiclass(
         fpr, tpr, _ = roc_curve((y_test == i).astype(int), y_pred_proba[:, i])
         roc_auc = auc(fpr, tpr)
         color = colors[i % len(colors)]
-        plt.plot(
-            fpr, tpr, color=color, lw=1, label=f"{var_names[i]} (AUC={roc_auc:.2f})"
-        )
+        plt.plot(fpr, tpr, color=color, lw=1, label=f"{var_names[i]} (AUC={roc_auc:.2f})")
 
     plt.plot([0, 1], [0, 1], "k--", lw=2, label="random")
     plt.xlim([0.0, 1.0])

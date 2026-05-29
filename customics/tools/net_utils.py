@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import torch.nn as nn
 
-
 _ACTIVATION_MAP: dict[str, type[nn.Module]] = {
     "relu": nn.ReLU,
     "sigmoid": nn.Sigmoid,
@@ -69,8 +68,7 @@ class FullyConnectedLayer(nn.Module):
             key = activation_name.lower()
             if key not in _ACTIVATION_MAP:
                 raise ValueError(
-                    f"Activation '{activation_name}' is not supported. "
-                    f"Choose from {list(_ACTIVATION_MAP)}."
+                    f"Activation '{activation_name}' is not supported. Choose from {list(_ACTIVATION_MAP)}."
                 )
             act_cls = _ACTIVATION_MAP[key]
             if act_cls is not None:

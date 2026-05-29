@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 if TYPE_CHECKING:
     import pandas as pd
+
     from customics.network.customics import CustOMICS
 
 
 def plot_loss(
-    history: List,
+    history: list,
     switch_epoch: int,
     figsize: tuple = (10, 5),
     show: bool = True,
@@ -57,9 +58,9 @@ def plot_loss(
 
 
 def plot_representation(
-    model: "CustOMICS",
-    omics_df: Dict[str, "pd.DataFrame"],
-    clinical_df: "pd.DataFrame",
+    model: CustOMICS,
+    omics_df: dict[str, pd.DataFrame],
+    clinical_df: pd.DataFrame,
     label: str,
     filename: str,
     title: str,
@@ -86,20 +87,20 @@ def plot_representation(
     """
     from customics.tools.utils import get_common_samples, save_plot_score
 
-    lt_samples = get_common_samples(list(omics_df.values()) + [clinical_df])
+    lt_samples = get_common_samples([*list(omics_df.values()), clinical_df])
     z = model.get_latent_representation(omics_df)
     labels_arr = clinical_df.loc[lt_samples, label].values
     save_plot_score(filename, z, labels_arr, title, show=show)
 
 
 def plot_survival_stratification(
-    model: "CustOMICS",
-    omics_df: Dict[str, "pd.DataFrame"],
-    clinical_df: "pd.DataFrame",
+    model: CustOMICS,
+    omics_df: dict[str, pd.DataFrame],
+    clinical_df: pd.DataFrame,
     event: str,
     surv_time: str,
     plot_title: str = "",
-    save_path: Optional[str] = None,
+    save_path: str | None = None,
     show: bool = True,
 ) -> None:
     """Stratify patients by median hazard and plot Kaplan-Meier curves.
@@ -125,17 +126,13 @@ def plot_survival_stratification(
     """
     import torch
     from lifelines import KaplanMeierFitter
-    from customics.tools.utils import get_common_samples
-    from customics.metrics.survival import cox_log_rank
 
-    lt_samples = get_common_samples(list(omics_df.values()) + [clinical_df])
+    from customics.metrics.survival import cox_log_rank
+    from customics.tools.utils import get_common_samples
+
+    lt_samples = get_common_samples([*list(omics_df.values()), clinical_df])
     z = model.get_latent_representation(omics_df)
-    hazard_pred = (
-        model.survival_predictor(torch.tensor(z, dtype=torch.float32).to(model.device))
-        .cpu()
-        .detach()
-        .numpy()
-    )
+    hazard_pred = model.survival_predictor(torch.tensor(z, dtype=torch.float32).to(model.device)).cpu().detach().numpy()
     median_hazard = np.mean(hazard_pred)
     high = [s for s, h in zip(lt_samples, hazard_pred) if h > median_hazard]
     low = [s for s, h in zip(lt_samples, hazard_pred) if h <= median_hazard]

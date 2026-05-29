@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from typing import List
-
 import torch
 import torch.nn as nn
 
 
-def consensus_loss(x: List[torch.Tensor], autoencoders: nn.ModuleList) -> torch.Tensor:
+def consensus_loss(x: list[torch.Tensor], autoencoders: nn.ModuleList) -> torch.Tensor:
     """Compute the cross-modal consensus loss.
 
     For every pair of sources (i, j), measures how well source i's encoder

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import List, Union
 
 import torch
 import torch.nn as nn
@@ -37,9 +36,9 @@ class ProbabilisticDecoder(nn.Module):
     def __init__(
         self,
         latent_dim: int,
-        hidden_dim: List[int],
+        hidden_dim: list[int],
         output_dim: int,
-        norm_layer: Union[type, bool] = nn.BatchNorm1d,
+        norm_layer: type | bool = nn.BatchNorm1d,
         leaky_slope: float = 0.2,
         dropout: float = 0.0,
     ) -> None:

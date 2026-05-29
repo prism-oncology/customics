@@ -79,10 +79,7 @@ def main() -> None:
 
     sources = args.sources.split(",")
 
-    print(
-        f"customics v0.1.0 — task={args.task}, cohort={args.cohorts}, "
-        f"sources={sources}, device={device}"
-    )
+    print(f"customics v0.1.0 — task={args.task}, cohort={args.cohorts}, sources={sources}, device={device}")
     print("Please use the Python API or the example notebook for full pipeline usage.")
     sys.exit(0)
 

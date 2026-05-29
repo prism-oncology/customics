@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, List
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import KFold, train_test_split
 from sklearn.manifold import TSNE
-
+from sklearn.model_selection import KFold, train_test_split
 
 sns.set_style("darkgrid")
 sns.set_palette("muted")
@@ -23,7 +21,7 @@ sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
 # ---------------------------------------------------------------------------
 
 
-def get_common_samples(dfs: List[pd.DataFrame]) -> List[str]:
+def get_common_samples(dfs: list[pd.DataFrame]) -> list[str]:
     """Return sample IDs present in every DataFrame.
 
     Parameters
@@ -42,9 +40,7 @@ def get_common_samples(dfs: List[pd.DataFrame]) -> List[str]:
     return sorted(common)
 
 
-def get_sub_omics_df(
-    omics_df: Dict[str, pd.DataFrame], lt_samples: List[str]
-) -> Dict[str, pd.DataFrame]:
+def get_sub_omics_df(omics_df: dict[str, pd.DataFrame], lt_samples: list[str]) -> dict[str, pd.DataFrame]:
     """Subset every omics DataFrame to the given samples.
 
     Parameters
@@ -67,7 +63,7 @@ def get_sub_omics_df(
 # ---------------------------------------------------------------------------
 
 
-def save_splits(lt_samples: List[str], cohort: str, split_dir: str = "splits") -> None:
+def save_splits(lt_samples: list[str], cohort: str, split_dir: str = "splits") -> None:
     """Compute 5-fold cross-validation splits and persist them to disk.
 
     Parameters
@@ -94,9 +90,7 @@ def save_splits(lt_samples: List[str], cohort: str, split_dir: str = "splits") -
                     f.write(lt_samples[idx] + "\n")
 
 
-def get_splits(
-    cohort: str, split: int, split_dir: str = "splits"
-) -> tuple[List[str], List[str], List[str]]:
+def get_splits(cohort: str, split: int, split_dir: str = "splits") -> tuple[list[str], list[str], list[str]]:
     """Load pre-computed train/val/test sample IDs for a given fold.
 
     Parameters
@@ -151,9 +145,7 @@ def save_plot_score(
     """
     tsne = TSNE(n_components=2, verbose=0, perplexity=40, n_iter=300)
     embedding = tsne.fit_transform(z)
-    df = pd.DataFrame(
-        {"targets": y, "x-axis": embedding[:, 0], "y-axis": embedding[:, 1]}
-    )
+    df = pd.DataFrame({"targets": y, "x-axis": embedding[:, 0], "y-axis": embedding[:, 1]})
     sns.scatterplot(
         x="x-axis",
         y="y-axis",

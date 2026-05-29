@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import torch
 import torch.nn as nn
 
-from customics.encoders.encoder import Encoder
 from customics.decoders.decoder import Decoder
+from customics.encoders.encoder import Encoder
 
 
 class AutoEncoder(nn.Module):
@@ -24,16 +22,14 @@ class AutoEncoder(nn.Module):
         Compute device.
     """
 
-    def __init__(
-        self, encoder: Encoder, decoder: Decoder, device: torch.device
-    ) -> None:
+    def __init__(self, encoder: Encoder, decoder: Decoder, device: torch.device) -> None:
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
         self.device = device
         self.to(device)
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode ``x`` and reconstruct it.
 
         Parameters

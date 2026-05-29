@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
-
 import numpy as np
 import pandas as pd
 import torch
@@ -41,10 +39,10 @@ class MultiOmicsDataset(Dataset):
 
     def __init__(
         self,
-        omics_df: Dict[str, pd.DataFrame],
+        omics_df: dict[str, pd.DataFrame],
         clinical_df: pd.DataFrame,
-        lt_samples: List[str],
-        label: Optional[str],
+        lt_samples: list[str],
+        label: str | None,
         event: str,
         surv_time: str,
     ) -> None:
@@ -58,17 +56,14 @@ class MultiOmicsDataset(Dataset):
     def __len__(self) -> int:
         return len(self.lt_samples)
 
-    def __getitem__(self, index: int) -> Tuple[List[torch.Tensor], int, int, int]:
+    def __getitem__(self, index: int) -> tuple[list[torch.Tensor], int, int, int]:
         sample = self.lt_samples[index]
-        omics_data = [
-            torch.tensor(df.loc[sample, :].values.astype(np.float32))
-            for df in self.omics_df.values()
-        ]
+        omics_data = [torch.tensor(df.loc[sample, :].values.astype(np.float32)) for df in self.omics_df.values()]
         lbl = self.clinical_df.loc[sample, self.label] if self.label else 0
         os_time = int(self.clinical_df.loc[sample, self.surv_time])
         os_event = int(self.clinical_df.loc[sample, self.event])
         return omics_data, lbl, os_time, os_event
 
-    def get_samples(self) -> List[str]:
+    def get_samples(self) -> list[str]:
         """Return the list of sample IDs in dataset order."""
         return self.lt_samples

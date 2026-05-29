@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import torch
@@ -26,7 +26,7 @@ class ModelWrapper(nn.Module):
         The omics source key to explain.
     """
 
-    def __init__(self, model: "CustOMICS", source: str) -> None:
+    def __init__(self, model: CustOMICS, source: str) -> None:
         super().__init__()
         self.model = model
         self.source = source
@@ -37,7 +37,7 @@ class ModelWrapper(nn.Module):
 
 def processPhenotypeDataForSamples(
     clinical_df: pd.DataFrame,
-    sample_id: List[str],
+    sample_id: list[str],
     label_encoder,
 ) -> pd.DataFrame:
     """Subset clinical DataFrame to the given samples.
@@ -116,6 +116,4 @@ def addToTensor(expr_selection: pd.DataFrame, device: str) -> torch.Tensor:
     torch.Tensor
         Float32 tensor on the specified device.
     """
-    return torch.tensor(
-        expr_selection.values.astype("float32"), dtype=torch.float32
-    ).to(device)
+    return torch.tensor(expr_selection.values.astype("float32"), dtype=torch.float32).to(device)

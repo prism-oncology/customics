@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import torch
 import torch.nn as nn
 
-from customics.encoders.probabilistic_encoder import ProbabilisticEncoder
 from customics.decoders.probabilistic_decoder import ProbabilisticDecoder
+from customics.encoders.probabilistic_encoder import ProbabilisticEncoder
 from customics.loss.mmd_loss import compute_mmd
 
 
@@ -59,7 +57,7 @@ class VAE(nn.Module):
         eps = torch.randn_like(std).to(self.device)
         return mean + std * eps
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode ``x``, sample ``z``, and reconstruct.
 
         Parameters
@@ -79,7 +77,7 @@ class VAE(nn.Module):
         return self.decoder(z), z
 
     def loss(self, x: torch.Tensor, beta: float) -> torch.Tensor:
-        """Compute the VAE loss: reconstruction + ``beta`` × MMD.
+        """Compute the VAE loss: reconstruction + ``beta`` * MMD.
 
         Parameters
         ----------
