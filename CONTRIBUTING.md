@@ -16,8 +16,9 @@ git clone https://github.com/prism-oncology/customics.git
 cd customics
 uv sync --dev
 
-uv run poe pre-commit
-uv run pytest
+uv run pre-commit install # installing the pre-commit
+uv run poe pre-commit # running the pre-commit
+uv run pytest # tests
 ```
 
 ## Reporting Issues
