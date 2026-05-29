@@ -133,8 +133,5 @@ dmypy.json
 # Claude Code
 .claude/
 
-# GitHub Actions
-.github/
-
 # Results / outputs
 results/
