@@ -1,0 +1,25 @@
+.md-typeset div.language-text.highlight pre > code,
+.md-typeset div.language-text.highlight code {
+  background: #fdfdfd !important;
+}
+
+[data-md-color-scheme="slate"] .md-typeset div.language-text.highlight pre > code,
+[data-md-color-scheme="slate"] .md-typeset div.language-text.highlight code {
+  background: #282828 !important;
+}
+
+.md-typeset .citation-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: nowrap;
+  margin-top: 62px;
+}
+
+.md-typeset .citation-logos img {
+  height: 42px ;
+  width: auto;
+  max-height: 42px;
+  object-fit: contain;
+}
