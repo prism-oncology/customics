@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 
 if TYPE_CHECKING:
-    from customics.network.customics import CustOMICS
+    from .. import CustOMICS
 
 
 class ModelWrapper(nn.Module):

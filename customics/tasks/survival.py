@@ -3,7 +3,7 @@
 import torch
 import torch.nn as nn
 
-from customics.exceptions import ConfigurationError
+from ..exceptions import ConfigurationError
 
 _ACTIVATIONS: dict[str, type[nn.Module]] = {
     "SELU": nn.SELU,

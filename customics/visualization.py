@@ -8,7 +8,7 @@ import numpy as np
 if TYPE_CHECKING:
     import pandas as pd
 
-    from customics.network.customics import CustOMICS
+    from customics import CustOMICS
 
 
 def plot_loss(

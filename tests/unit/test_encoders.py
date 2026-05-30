@@ -3,15 +3,11 @@
 import pytest
 import torch
 
-from customics.decoders.decoder import Decoder
-from customics.decoders.probabilistic_decoder import ProbabilisticDecoder
-from customics.encoders.encoder import Encoder
-from customics.encoders.probabilistic_encoder import ProbabilisticEncoder
+from customics.decoders import Decoder, ProbabilisticDecoder
+from customics.encoders import Encoder, ProbabilisticEncoder
 from customics.exceptions import ConfigurationError
-from customics.models.autoencoder import AutoEncoder
-from customics.models.vae import VAE
-from customics.tasks.classification import MultiClassifier
-from customics.tasks.survival import SurvivalNet
+from customics.modules import VAE, AutoEncoder
+from customics.tasks import MultiClassifier, SurvivalNet
 
 BATCH = 8
 INPUT_DIM = 64

@@ -3,9 +3,9 @@
 import torch
 import torch.nn as nn
 
-from customics.decoders.probabilistic_decoder import ProbabilisticDecoder
-from customics.encoders.probabilistic_encoder import ProbabilisticEncoder
-from customics.loss.mmd_loss import compute_mmd
+from ..decoders import ProbabilisticDecoder
+from ..encoders import ProbabilisticEncoder
+from ..loss import compute_mmd
 
 
 class VAE(nn.Module):

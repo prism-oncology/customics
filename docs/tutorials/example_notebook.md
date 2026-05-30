@@ -1,4 +1,4 @@
-# customics — End-to-End Tutorial
+# Main usage
 
 This notebook walks through a complete **customics** workflow on the bundled toy dataset:
 

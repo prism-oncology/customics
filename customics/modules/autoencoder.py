@@ -3,8 +3,8 @@
 import torch
 import torch.nn as nn
 
-from customics.decoders.decoder import Decoder
-from customics.encoders.encoder import Encoder
+from ..decoders import Decoder
+from ..encoders import Encoder
 
 
 class AutoEncoder(nn.Module):

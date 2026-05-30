@@ -5,7 +5,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
-from customics.tools.net_utils import FullyConnectedLayer
+from ..tools import FullyConnectedLayer
 
 
 class Encoder(nn.Module):

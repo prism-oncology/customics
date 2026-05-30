@@ -105,5 +105,5 @@ You can update documentation in `./docs`. Refer to [Zensical documentation](http
 Serve docs locally:
 
 ```sh
-uv run zensical serve
+uv run poe docs
 ```

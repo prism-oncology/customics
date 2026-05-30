@@ -4,11 +4,7 @@ import pytest
 import torch
 
 from customics import CustOMICS
-from customics.exceptions import (
-    ConfigurationError,
-    DataValidationError,
-    ModelNotFittedError,
-)
+from customics.exceptions import ConfigurationError, DataValidationError, ModelNotFittedError
 
 
 class TestCustOMICSInstantiation:

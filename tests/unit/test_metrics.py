@@ -4,8 +4,7 @@ import numpy as np
 import pytest
 from sklearn.preprocessing import OneHotEncoder
 
-from customics.metrics.classification import multi_classification_evaluation
-from customics.metrics.survival import CIndex_lifeline, accuracy_cox, cox_log_rank
+from customics.metrics import CIndex_lifeline, accuracy_cox, cox_log_rank, multi_classification_evaluation
 
 
 class TestClassificationMetrics:

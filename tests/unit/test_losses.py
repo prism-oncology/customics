@@ -4,9 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from customics.loss.classification_loss import classification_loss
-from customics.loss.mmd_loss import compute_kernel, compute_mmd
-from customics.loss.survival_loss import CoxLoss
+from customics.loss import CoxLoss, classification_loss, compute_kernel, compute_mmd
 
 
 class TestClassificationLoss:

@@ -2,7 +2,7 @@
 
 import torch
 
-from customics.datasets.multi_omics_dataset import MultiOmicsDataset
+from customics.datasets import MultiOmicsDataset
 
 
 class TestMultiOmicsDataset:
@@ -12,7 +12,7 @@ class TestMultiOmicsDataset:
 
     def test_getitem_shapes(self, omics_df, clinical_df, sample_ids):
         ds = MultiOmicsDataset(omics_df, clinical_df, sample_ids, "label", "OS", "OS.time")
-        omics_tensors, lbl, os_time, os_event = ds[0]
+        omics_tensors, _, os_time, os_event = ds[0]
         assert len(omics_tensors) == 2
         assert omics_tensors[0].shape == (50,)  # rna
         assert omics_tensors[1].shape == (30,)  # cnv

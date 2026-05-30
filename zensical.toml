@@ -17,7 +17,7 @@ nav = [
       "api/evaluate.md",
       "api/visualise.md",
    ] },
-   { "Tutorial" = [
+   { "Tutorials" = [
       "tutorials/example_notebook.md",
    ] },
    { "Cite us" = "citation.md" },
@@ -69,4 +69,4 @@ docstring_section_style = "table"
 
 [project.plugins.mkdocstrings.handlers.python]
 inventories = ["https://docs.python.org/3/objects.inv"]
-paths = ["src"]
+paths = ["customics"]

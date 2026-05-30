@@ -1,5 +1,3 @@
-"""Core customics model: hierarchical multi-omics integration with multi-task learning."""
-
 from __future__ import annotations
 
 import logging
@@ -13,28 +11,15 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-from customics.datasets.multi_omics_dataset import MultiOmicsDataset
-from customics.decoders.decoder import Decoder
-from customics.decoders.probabilistic_decoder import ProbabilisticDecoder
-from customics.encoders.encoder import Encoder
-from customics.encoders.probabilistic_encoder import ProbabilisticEncoder
-from customics.exceptions import (
-    ConfigurationError,
-    DataValidationError,
-    ModelNotFittedError,
-)
-from customics.loss.classification_loss import classification_loss
-from customics.loss.survival_loss import CoxLoss
-from customics.metrics.classification import (
-    multi_classification_evaluation,
-    plot_roc_multiclass,
-)
-from customics.metrics.survival import CIndex_lifeline
-from customics.models.autoencoder import AutoEncoder
-from customics.models.vae import VAE
-from customics.tasks.classification import MultiClassifier
-from customics.tasks.survival import SurvivalNet
-from customics.tools.utils import get_common_samples
+from .datasets import MultiOmicsDataset
+from .decoders import Decoder, ProbabilisticDecoder
+from .encoders import Encoder, ProbabilisticEncoder
+from .exceptions import ConfigurationError, DataValidationError, ModelNotFittedError
+from .loss import CoxLoss, classification_loss
+from .metrics import CIndex_lifeline, multi_classification_evaluation, plot_roc_multiclass
+from .modules import VAE, AutoEncoder
+from .tasks import MultiClassifier, SurvivalNet
+from .tools import get_common_samples
 
 logger = logging.getLogger(__name__)
 
@@ -56,40 +41,6 @@ class CustOMICS(nn.Module):
       heads are optimised; the central VAE is kept fixed.
     - **Phase 2** (``epoch >= switch``): the full pipeline — per-source AEs,
       central VAE, and task heads — is jointly optimised.
-
-    Parameters
-    ----------
-    source_params : dict
-        Per-source configuration.  Keys are source names; each value is a dict
-        with the following keys:
-
-        * ``input_dim`` (int): number of input features.
-        * ``hidden_dim`` (list of int): hidden layer sizes.
-        * ``latent_dim`` (int): per-source latent dimension.
-        * ``norm`` (bool): whether to use batch normalisation.
-        * ``dropout`` (float): dropout rate in ``[0, 1]``.
-
-    central_params : dict
-        Central VAE configuration.  Required keys: ``hidden_dim`` (list of
-        int), ``latent_dim`` (int), ``norm`` (bool), ``dropout`` (float),
-        ``beta`` (float — MMD regularisation weight).
-
-    classif_params : dict
-        Classifier configuration.  Required keys: ``n_class`` (int, >= 2),
-        ``lambda`` (float — loss weight), ``hidden_layers`` (list of int),
-        ``dropout`` (float).
-
-    surv_params : dict
-        Survival-predictor configuration.  Required keys: ``lambda`` (float),
-        ``dims`` (list of int), ``activation`` (str), ``l2_reg`` (float),
-        ``norm`` (bool), ``dropout`` (float).
-
-    train_params : dict
-        Training hyperparameters.  Required keys: ``switch`` (int — epoch at
-        which to enter phase 2) and ``lr`` (float — learning rate).
-
-    device : torch.device
-        Compute device.
 
     Examples
     --------
@@ -120,6 +71,42 @@ class CustOMICS(nn.Module):
         train_params: dict,
         device: torch.device,
     ) -> None:
+        """Model initialization.
+
+        Parameters
+        ----------
+        source_params : dict
+            Per-source configuration.  Keys are source names; each value is a dict
+            with the following keys:
+
+            * ``input_dim`` (int): number of input features.
+            * ``hidden_dim`` (list of int): hidden layer sizes.
+            * ``latent_dim`` (int): per-source latent dimension.
+            * ``norm`` (bool): whether to use batch normalisation.
+            * ``dropout`` (float): dropout rate in ``[0, 1]``.
+
+        central_params : dict
+            Central VAE configuration.  Required keys: ``hidden_dim`` (list of
+            int), ``latent_dim`` (int), ``norm`` (bool), ``dropout`` (float),
+            ``beta`` (float — MMD regularisation weight).
+
+        classif_params : dict
+            Classifier configuration.  Required keys: ``n_class`` (int, >= 2),
+            ``lambda`` (float — loss weight), ``hidden_layers`` (list of int),
+            ``dropout`` (float).
+
+        surv_params : dict
+            Survival-predictor configuration.  Required keys: ``lambda`` (float),
+            ``dims`` (list of int), ``activation`` (str), ``l2_reg`` (float),
+            ``norm`` (bool), ``dropout`` (float).
+
+        train_params : dict
+            Training hyperparameters.  Required keys: ``switch`` (int — epoch at
+            which to enter phase 2) and ``lr`` (float — learning rate).
+
+        device : torch.device
+            Compute device.
+        """
         super().__init__()
         self._validate_params(source_params, central_params, classif_params, train_params)
 
