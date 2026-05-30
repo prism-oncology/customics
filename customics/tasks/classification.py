@@ -5,7 +5,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
-from ..tools import FullyConnectedLayer
+from ..modules import FullyConnectedLayer
 
 
 class MultiClassifier(nn.Module):

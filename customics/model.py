@@ -12,14 +12,12 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from .datasets import MultiOmicsDataset
-from .decoders import Decoder, ProbabilisticDecoder
-from .encoders import Encoder, ProbabilisticEncoder
 from .exceptions import ConfigurationError, DataValidationError, ModelNotFittedError
 from .loss import CoxLoss, classification_loss
 from .metrics import CIndex_lifeline, multi_classification_evaluation, plot_roc_multiclass
-from .modules import VAE, AutoEncoder
+from .modules import VAE, AutoEncoder, Decoder, Encoder, ProbabilisticDecoder, ProbabilisticEncoder
 from .tasks import MultiClassifier, SurvivalNet
-from .tools import get_common_samples
+from .utils import get_common_samples
 
 logger = logging.getLogger(__name__)
 

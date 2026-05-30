@@ -5,7 +5,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
-from ..tools import FullyConnectedLayer
+from .. import FullyConnectedLayer
 
 
 class ProbabilisticEncoder(nn.Module):

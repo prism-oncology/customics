@@ -3,8 +3,7 @@
 import torch
 import torch.nn as nn
 
-from ..decoders import Decoder
-from ..encoders import Encoder
+from . import Decoder, Encoder
 
 
 class AutoEncoder(nn.Module):

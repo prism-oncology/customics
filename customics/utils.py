@@ -2,11 +2,8 @@
 
 import os
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
-from sklearn.manifold import TSNE
 from sklearn.model_selection import KFold, train_test_split
 
 sns.set_style("darkgrid")
@@ -112,48 +109,3 @@ def get_splits(cohort: str, split: int, split_dir: str = "splits") -> tuple[list
         with open(path) as f:
             result.append([line.rstrip() for line in f])
     return tuple(result)  # type: ignore[return-value]
-
-
-# ---------------------------------------------------------------------------
-# Visualisation
-# ---------------------------------------------------------------------------
-
-
-def save_plot_score(
-    filename: str,
-    z: np.ndarray,
-    y: np.ndarray,
-    title: str,
-    show: bool = False,
-) -> None:
-    """Compute a t-SNE embedding and save a colour-coded scatter plot.
-
-    Parameters
-    ----------
-    filename : str
-        Output file path (without extension; a ``.png`` suffix is appended).
-    z : np.ndarray
-        High-dimensional feature matrix, shape (n_samples, n_features).
-    y : np.ndarray
-        Class labels for colouring, shape (n_samples,).
-    title : str
-        Plot title.
-    show : bool
-        If True, display the plot interactively after saving.
-    """
-    tsne = TSNE(n_components=2, verbose=0, perplexity=40, n_iter=300)
-    embedding = tsne.fit_transform(z)
-    df = pd.DataFrame({"targets": y, "x-axis": embedding[:, 0], "y-axis": embedding[:, 1]})
-    sns.scatterplot(
-        x="x-axis",
-        y="y-axis",
-        hue=df["targets"].tolist(),
-        palette=sns.color_palette("hls", len(np.unique(y))),
-        data=df,
-    )
-    plt.title(title)
-    plt.legend(bbox_to_anchor=(1.5, 1.1), loc=2, borderaxespad=0.0)
-    plt.savefig(filename + ".png", bbox_inches="tight")
-    if show:
-        plt.show()
-    plt.clf()

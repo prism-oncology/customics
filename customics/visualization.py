@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+from sklearn.manifold import TSNE
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -11,12 +13,7 @@ if TYPE_CHECKING:
     from customics import CustOMICS
 
 
-def plot_loss(
-    history: list,
-    switch_epoch: int,
-    figsize: tuple = (10, 5),
-    show: bool = True,
-) -> None:
+def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: bool = True) -> None:
     """Plot training (and optional validation) loss curves.
 
     Parameters
@@ -83,7 +80,7 @@ def plot_representation(
     show : bool
         If True, display the figure interactively.
     """
-    from customics.tools.utils import get_common_samples, save_plot_score
+    from customics.utils import get_common_samples
 
     lt_samples = get_common_samples([*list(omics_df.values()), clinical_df])
     z = model.get_latent_representation(omics_df)
@@ -126,7 +123,7 @@ def plot_survival_stratification(
     from lifelines import KaplanMeierFitter
 
     from customics.metrics.survival import cox_log_rank
-    from customics.tools.utils import get_common_samples
+    from customics.utils import get_common_samples
 
     lt_samples = get_common_samples([*list(omics_df.values()), clinical_df])
     z = model.get_latent_representation(omics_df)
@@ -152,3 +149,37 @@ def plot_survival_stratification(
         plt.savefig(save_path, bbox_inches="tight")
     if show:
         plt.show()
+
+
+def save_plot_score(filename: str, z: np.ndarray, y: np.ndarray, title: str, show: bool = False) -> None:
+    """Compute a t-SNE embedding and save a colour-coded scatter plot.
+
+    Parameters
+    ----------
+    filename : str
+        Output file path (without extension; a ``.png`` suffix is appended).
+    z : np.ndarray
+        High-dimensional feature matrix, shape (n_samples, n_features).
+    y : np.ndarray
+        Class labels for colouring, shape (n_samples,).
+    title : str
+        Plot title.
+    show : bool
+        If True, display the plot interactively after saving.
+    """
+    tsne = TSNE(n_components=2, verbose=0, perplexity=40, n_iter=300)
+    embedding = tsne.fit_transform(z)
+    df = pd.DataFrame({"targets": y, "x-axis": embedding[:, 0], "y-axis": embedding[:, 1]})
+    sns.scatterplot(
+        x="x-axis",
+        y="y-axis",
+        hue=df["targets"].tolist(),
+        palette=sns.color_palette("hls", len(np.unique(y))),
+        data=df,
+    )
+    plt.title(title)
+    plt.legend(bbox_to_anchor=(1.5, 1.1), loc=2, borderaxespad=0.0)
+    plt.savefig(filename + ".png", bbox_inches="tight")
+    if show:
+        plt.show()
+    plt.clf()

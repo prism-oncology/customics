@@ -1,18 +1,15 @@
-"""Probabilistic (VAE) decoder network."""
+"""Standard (deterministic) decoder network."""
 
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
-from ..tools import FullyConnectedLayer
+from .. import FullyConnectedLayer
 
 
-class ProbabilisticDecoder(nn.Module):
-    """Generative network for the variational autoencoder.
-
-    Applies a sigmoid activation on the output so reconstructions are in
-    ``[0, 1]``.
+class Decoder(nn.Module):
+    """Deterministic decoder that maps a latent vector back to data space.
 
     Parameters
     ----------
@@ -82,6 +79,6 @@ class ProbabilisticDecoder(nn.Module):
         Returns
         -------
         torch.Tensor
-            Reconstructed tensor in ``[0, 1]``, shape (batch, output_dim).
+            Reconstructed tensor, shape (batch, output_dim).
         """
-        return torch.sigmoid(self.net(z))
+        return self.net(z)

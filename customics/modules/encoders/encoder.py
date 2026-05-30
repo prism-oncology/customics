@@ -1,25 +1,27 @@
-"""Standard (deterministic) decoder network."""
+"""Standard (deterministic) encoder network."""
 
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
-from ..tools import FullyConnectedLayer
+from .. import FullyConnectedLayer
 
 
-class Decoder(nn.Module):
-    """Deterministic decoder that maps a latent vector back to data space.
+class Encoder(nn.Module):
+    """Deterministic encoder that maps high-dimensional input to a latent vector.
+
+    Architecture: ``InputLayer → [HiddenLayers...] → OutputLayer``
+    where each hidden layer is a :class:`~customics.tools.net_utils.FullyConnectedLayer`.
 
     Parameters
     ----------
-    latent_dim : int
-        Dimension of the latent representation.
+    input_dim : int
+        Dimension of the input tensor.
     hidden_dim : list of int
-        Sizes of intermediate hidden layers (in encoder order; reversed
-        internally).
-    output_dim : int
-        Dimension of the reconstructed output.
+        Sizes of intermediate hidden layers.
+    latent_dim : int
+        Dimension of the output latent representation.
     norm_layer : type or bool
         Normalization layer class or ``True`` for ``nn.BatchNorm1d``.
     leaky_slope : float
@@ -30,36 +32,35 @@ class Decoder(nn.Module):
 
     def __init__(
         self,
-        latent_dim: int,
+        input_dim: int,
         hidden_dim: list[int],
-        output_dim: int,
+        latent_dim: int,
         norm_layer: type | bool = nn.BatchNorm1d,
         leaky_slope: float = 0.2,
         dropout: float = 0.0,
     ) -> None:
         super().__init__()
-        rev = list(reversed(hidden_dim))
         layers: OrderedDict[str, nn.Module] = OrderedDict()
         layers["InputLayer"] = FullyConnectedLayer(
-            latent_dim,
-            rev[0],
+            input_dim,
+            hidden_dim[0],
             norm_layer=norm_layer,
             leaky_slope=leaky_slope,
             dropout=dropout,
             activation=True,
         )
-        for i in range(1, len(rev)):
+        for i in range(1, len(hidden_dim)):
             layers[f"Layer{i}"] = FullyConnectedLayer(
-                rev[i - 1],
-                rev[i],
+                hidden_dim[i - 1],
+                hidden_dim[i],
                 norm_layer=norm_layer,
                 leaky_slope=leaky_slope,
                 dropout=dropout if i % 2 == 0 else 0.0,
                 activation=True,
             )
         layers["OutputLayer"] = FullyConnectedLayer(
-            rev[-1],
-            output_dim,
+            hidden_dim[-1],
+            latent_dim,
             norm_layer=norm_layer,
             leaky_slope=leaky_slope,
             dropout=0.0,
@@ -68,17 +69,17 @@ class Decoder(nn.Module):
         )
         self.net = nn.Sequential(layers)
 
-    def forward(self, z: torch.Tensor) -> torch.Tensor:
-        """Decode latent vector ``z`` to data space.
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Encode ``x`` to a latent vector.
 
         Parameters
         ----------
-        z : torch.Tensor
-            Latent tensor, shape (batch, latent_dim).
+        x : torch.Tensor
+            Input tensor, shape (batch, input_dim).
 
         Returns
         -------
         torch.Tensor
-            Reconstructed tensor, shape (batch, output_dim).
+            Latent tensor, shape (batch, latent_dim).
         """
-        return self.net(z)
+        return self.net(x)
