@@ -24,7 +24,7 @@ This notebook walks through a complete **customics** workflow on the bundled toy
 ```
 
 **Phase 1** (epochs 0 → `switch`): each source autoencoder is trained
-independently; task heads operate on per-source representations.  
+independently; task heads operate on per-source representations.
 **Phase 2** (epochs `switch` → end): the central VAE integrates all sources
 into a unified latent space used by the task heads.
 
@@ -541,7 +541,7 @@ print(f"\nClinical data  : {clinical_df.shape[0]} rows * {clinical_df.shape[1]} 
       protein      100 samples *  160 features
       gene_exp     100 samples *  131 features
       methyl       100 samples *  367 features
-    
+
     Clinical data  : 100 rows * 4 columns
 
 
@@ -566,7 +566,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-    
+
     === Label distribution (cluster.id) ===
     cluster.id
     1    35
@@ -577,9 +577,9 @@ plt.show()
 
 
 
-    
+
 ![png](usage_files/usage_11_1.png)
-    
+
 
 
 
@@ -599,7 +599,7 @@ print(f"First 5 sample IDs: {lt_samples[:5]}")
 
 ## 2. Splitting the Data
 
-We split the full cohort into **train / validation / test** sets.  
+We split the full cohort into **train / validation / test** sets.
 `get_sub_omics_df` applies the same sample selection to all sources simultaneously,
 keeping every dictionary in sync.
 
@@ -1113,9 +1113,9 @@ model.plot_loss()
 ```
 
 
-    
+
 ![png](usage_files/usage_21_0.png)
-    
+
 
 
 ---
@@ -1150,7 +1150,7 @@ for k, v in metrics.items():
     print(f"  {k:<25s}: {v:.4f}" if isinstance(v, float) else f"  {k}: {v}")
 ```
 
-    
+
     ── Classification metrics on the test set ──
       Accuracy                 : 1.0000
       F1-score                 : 1.0000
@@ -1160,9 +1160,9 @@ for k, v in metrics.items():
 
 
 
-    
+
 ![png](usage_files/usage_23_1.png)
-    
+
 
 
 
@@ -1184,7 +1184,7 @@ print("\n── Survival metrics on the test set ──")
 print("C-index :", surv_metrics)
 ```
 
-    
+
     ── Survival metrics on the test set ──
     C-index : 0.48936170212765956
 
@@ -1228,9 +1228,9 @@ model.plot_representation(
 
 
 
-    
+
 ![png](usage_files/usage_26_1.png)
-    
+
 
 
 
@@ -1245,7 +1245,7 @@ model.plot_representation(
 the cohort into high-risk / low-risk groups at the median score and draws a
 Kaplan-Meier curve.
 
-> **Note:** with synthetic survival data the curves will overlap.  
+> **Note:** with synthetic survival data the curves will overlap.
 > This section shows the API; meaningful separation requires real OS/OS.time.
 
 
@@ -1262,9 +1262,9 @@ model.stratify(
 ```
 
 
-    
+
 ![png](usage_files/usage_28_0.png)
-    
+
 
 
 ---
@@ -1397,11 +1397,10 @@ for k, v in metrics_reloaded.items():
     print(f"  {k:<25s}: {v:.4f}" if isinstance(v, float) else f"  {k}: {v}")
 ```
 
-    
+
     ── Reloaded model — classification metrics ──
       Accuracy                 : 1.0000
       F1-score                 : 1.0000
       Precision                : 1.0000
       Recall                   : 1.0000
       AUC                      : 1.0000
-
