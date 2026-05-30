@@ -1,9 +1,12 @@
 """Visualisation helpers for trained customics models."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from sklearn.manifold import TSNE
 
@@ -167,7 +170,7 @@ def save_plot_score(filename: str, z: np.ndarray, y: np.ndarray, title: str, sho
     show : bool
         If True, display the plot interactively after saving.
     """
-    tsne = TSNE(n_components=2, verbose=0, perplexity=40, n_iter=300)
+    tsne = TSNE(n_components=2, verbose=0, perplexity=40)
     embedding = tsne.fit_transform(z)
     df = pd.DataFrame({"targets": y, "x-axis": embedding[:, 0], "y-axis": embedding[:, 1]})
     sns.scatterplot(
@@ -179,7 +182,7 @@ def save_plot_score(filename: str, z: np.ndarray, y: np.ndarray, title: str, sho
     )
     plt.title(title)
     plt.legend(bbox_to_anchor=(1.5, 1.1), loc=2, borderaxespad=0.0)
-    plt.savefig(filename + ".png", bbox_inches="tight")
+    plt.savefig(str(filename) + ".png", bbox_inches="tight")
     if show:
         plt.show()
     plt.clf()

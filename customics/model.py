@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -885,7 +886,7 @@ class CustOMICS(nn.Module):
     # Serialisation
     # ---------------------------------------------------------------------- #
 
-    def save(self, path: str) -> None:
+    def save(self, path: str | Path) -> None:
         """Save the model architecture config and trained weights to *path*.
 
         The checkpoint contains the five parameter dicts needed to reconstruct
@@ -909,11 +910,15 @@ class CustOMICS(nn.Module):
             "history": self.history,
             "_is_fitted": self._is_fitted,
         }
+
+        checkpoint_path = Path(path)
+        checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+
         torch.save(checkpoint, path)
-        logger.info("Model saved to %s", path)
+        logger.info(f"Model saved to {path}")
 
     @classmethod
-    def load(cls, path: str, device: torch.device | None = None) -> CustOMICS:
+    def load(cls, path: str | Path, device: torch.device | None = None) -> CustOMICS:
         """Load a model previously saved with [save](api/train/#customics.CustOMICS.save).
 
         Parameters
@@ -945,5 +950,5 @@ class CustOMICS(nn.Module):
         model.history = checkpoint.get("history", [])
         model._is_fitted = checkpoint.get("_is_fitted", True)
         model.to(device)
-        logger.info("Model loaded from %s", path)
+        logger.info(f"Model loaded from {path}")
         return model

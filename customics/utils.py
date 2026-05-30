@@ -2,6 +2,7 @@
 
 import os
 
+import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.model_selection import KFold, train_test_split
@@ -9,6 +10,36 @@ from sklearn.model_selection import KFold, train_test_split
 sns.set_style("darkgrid")
 sns.set_palette("muted")
 sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
+
+# ---------------------------------------------------------------------------
+# Toy dataset loader
+# ---------------------------------------------------------------------------
+
+
+def toy_dataset() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
+    """Load toy multi-omics dataset from GitHub.
+
+    Returns
+    -------
+    tuple of (dict, pd.DataFrame)
+        - dict: Multi-omics dictionary (source name → DataFrame).
+        - DataFrame: Clinical metadata with sample IDs as index.
+    """
+    PREFIX = "https://raw.githubusercontent.com/prism-oncology/customics/refs/heads/main/data"
+
+    omics_df = {
+        "protein": pd.read_csv(f"{PREFIX}/toy_data/protein.txt", sep="\t", index_col=0).T,
+        "gene_exp": pd.read_csv(f"{PREFIX}/toy_data/gene_exp.txt", sep="\t", index_col=0).T,
+        "methyl": pd.read_csv(f"{PREFIX}/toy_data/methyl.txt", sep="\t", index_col=0).T,
+    }
+
+    clinical_df = pd.read_csv(f"{PREFIX}/toy_data/labels.txt", sep="\t", index_col=1, header=0)
+
+    rng = np.random.default_rng(42)
+    clinical_df["OS"] = rng.integers(0, 2, size=len(clinical_df))  # 0 = censored, 1 = event
+    clinical_df["OS.time"] = rng.integers(200, 3000, size=len(clinical_df))  # days
+
+    return omics_df, clinical_df
 
 
 # ---------------------------------------------------------------------------

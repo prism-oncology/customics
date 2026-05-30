@@ -90,7 +90,7 @@ def multi_classification_evaluation(
         )
         plt.xlabel("Predicted Labels")
         plt.ylabel("True Labels")
-        plt.savefig(filename + ".png")
+        plt.savefig(str(filename) + ".png")
         plt.clf()
     return scores
 

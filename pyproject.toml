@@ -45,6 +45,8 @@ dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "zensical>=0.0.41",
+    "ipykernel>=7.2.0",
+    "ipywidgets>=8.1.8",
 ]
 
 [project.urls]
