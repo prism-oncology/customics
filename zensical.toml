@@ -18,7 +18,7 @@ nav = [
       "api/visualise.md",
    ] },
    { "Tutorials" = [
-      "tutorials/example_notebook.md",
+      "tutorials/usage.md",
    ] },
    { "Cite us" = "citation.md" },
 ]

@@ -23,17 +23,17 @@ class SurvivalNet(nn.Module):
     config : dict
         Configuration dictionary with keys:
 
-        * ``dims`` (list of int): layer sizes including input and output.
-        * ``drop`` (float): dropout probability.
-        * ``norm`` (bool): whether to apply batch normalisation.
-        * ``activation`` (str): activation function name (one of
-          ``'SELU'``, ``'ReLU'``, ``'LeakyReLU'``, ``'Tanh'``,
-          ``'Sigmoid'``, ``'ELU'``).
+        * `dims` (list of int): layer sizes including input and output.
+        * `drop` (float): dropout probability.
+        * `norm` (bool): whether to apply batch normalisation.
+        * `activation` (str): activation function name (one of
+          `'SELU'`, `'ReLU'`, `'LeakyReLU'`, `'Tanh'`,
+          `'Sigmoid'`, `'ELU'`).
 
     Raises
     ------
     ConfigurationError
-        If ``activation`` is not in the supported set.
+        If `activation` is not in the supported set.
 
     Examples
     --------

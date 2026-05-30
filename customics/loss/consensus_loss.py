@@ -15,7 +15,7 @@ def consensus_loss(x: list[torch.Tensor], autoencoders: nn.ModuleList) -> torch.
     x : list of torch.Tensor
         Per-source input tensors.
     autoencoders : nn.ModuleList
-        Per-source autoencoders with accessible ``encoder`` and ``decoder``
+        Per-source autoencoders with accessible `encoder` and `decoder`
         sub-modules.
 
     Returns

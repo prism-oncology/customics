@@ -15,14 +15,14 @@ def classification_loss(
     Parameters
     ----------
     loss_name : str
-        Loss function identifier: ``'CE'`` (cross-entropy) or ``'BCE'``
+        Loss function identifier: `'CE'` (cross-entropy) or `'BCE'`
         (binary cross-entropy with logits).
     y_pred : torch.Tensor
         Model output logits.
     y_true : torch.Tensor
         Ground-truth class labels (integer indices for CE, floats for BCE).
     reduction : str
-        Reduction to apply: ``'mean'`` or ``'sum'``.
+        Reduction to apply: `'mean'` or `'sum'`.
 
     Returns
     -------
@@ -32,7 +32,7 @@ def classification_loss(
     Raises
     ------
     ValueError
-        If ``loss_name`` is not ``'CE'`` or ``'BCE'``.
+        If `loss_name` is not `'CE'` or `'BCE'`.
     """
     if loss_name == "CE":
         return nn.CrossEntropyLoss(reduction=reduction)(y_pred, y_true)

@@ -16,7 +16,7 @@ class VAE(nn.Module):
     Parameters
     ----------
     encoder : ProbabilisticEncoder
-        Inference network that outputs ``(mean, log_var)``.
+        Inference network that outputs `(mean, log_var)`.
     decoder : ProbabilisticDecoder
         Generative network.
     device : torch.device
@@ -55,7 +55,7 @@ class VAE(nn.Module):
         return mean + std * eps
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """Encode ``x``, sample ``z``, and reconstruct.
+        """Encode `x`, sample `z`, and reconstruct.
 
         Parameters
         ----------
@@ -74,7 +74,7 @@ class VAE(nn.Module):
         return self.decoder(z), z
 
     def loss(self, x: torch.Tensor, beta: float) -> torch.Tensor:
-        """Compute the VAE loss: reconstruction + ``beta`` * MMD.
+        """Compute the VAE loss: reconstruction + `beta` * MMD.
 
         Parameters
         ----------

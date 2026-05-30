@@ -85,7 +85,7 @@ def splitExprandSample(
     Parameters
     ----------
     condition : pd.Series
-        Boolean mask aligned with ``expr`` rows.
+        Boolean mask aligned with `expr` rows.
     sample_size : int
         Number of rows to sample from the filtered set.
     expr : pd.DataFrame
@@ -100,14 +100,14 @@ def splitExprandSample(
 
 
 def addToTensor(expr_selection: pd.DataFrame, device: str) -> torch.Tensor:
-    """Convert an expression DataFrame to a float32 tensor on ``device``.
+    """Convert an expression DataFrame to a float32 tensor on `device`.
 
     Parameters
     ----------
     expr_selection : pd.DataFrame
         Expression matrix to convert.
     device : str
-        Target device string (e.g. ``'cpu'`` or ``'cuda'``).
+        Target device string (e.g. `'cpu'` or `'cuda'`).
 
     Returns
     -------

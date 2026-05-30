@@ -25,7 +25,7 @@ def compute_kernel(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 
 
 def compute_mmd(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    """Compute the Maximum Mean Discrepancy between distributions ``x`` and ``y``.
+    """Compute the Maximum Mean Discrepancy between distributions `x` and `y`.
 
     Parameters
     ----------

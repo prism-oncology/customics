@@ -20,13 +20,13 @@ def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: 
     ----------
     history : list
         Each element is either a scalar train loss or a tuple
-        ``(train_loss, val_loss)``.
+        `(train_loss, val_loss)`.
     switch_epoch : int
         Epoch at which the model switches to phase 2 (drawn as a dashed line).
     figsize : tuple
-        Figure size ``(width, height)`` in inches.
+        Figure size `(width, height)` in inches.
     show : bool
-        If True, call ``plt.show()`` after rendering.
+        If True, call `plt.show()` after rendering.
     """
     n_epochs = len(history)
     plt.figure(figsize=figsize)
@@ -70,9 +70,9 @@ def plot_representation(
     omics_df : dict
         Multi-omics data.
     clinical_df : pd.DataFrame
-        Clinical metadata containing ``label``.
+        Clinical metadata containing `label`.
     label : str
-        Column in ``clinical_df`` to use for colouring.
+        Column in `clinical_df` to use for colouring.
     filename : str
         Output path (without extension).
     title : str
@@ -157,7 +157,7 @@ def save_plot_score(filename: str, z: np.ndarray, y: np.ndarray, title: str, sho
     Parameters
     ----------
     filename : str
-        Output file path (without extension; a ``.png`` suffix is appended).
+        Output file path (without extension; a `.png` suffix is appended).
     z : np.ndarray
         High-dimensional feature matrix, shape (n_samples, n_features).
     y : np.ndarray

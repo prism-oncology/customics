@@ -129,4 +129,6 @@ model.explain(sample_ids, omics_train, clinical_df,
               source="rna", subtype="Her2", label="PAM50")
 ```
 
-See the tutorial [here](../tutorials/usage) for more.
+## Next steps
+
+See our main tutorial [here](tutorials/usage) for more details, or our [API](api/train/).

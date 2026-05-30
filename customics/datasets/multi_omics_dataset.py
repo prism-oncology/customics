@@ -20,14 +20,14 @@ class MultiOmicsDataset(Dataset):
         Clinical metadata indexed by sample ID.
     lt_samples : list of str
         Ordered list of sample IDs to include (must be present in every
-        omics DataFrame and in ``clinical_df``).
+        omics DataFrame and in `clinical_df`).
     label : str or None
-        Column in ``clinical_df`` containing class labels.  Pass ``None`` to
+        Column in `clinical_df` containing class labels.  Pass `None` to
         disable label loading (returns 0).
     event : str
-        Column in ``clinical_df`` containing the event indicator (0/1).
+        Column in `clinical_df` containing the event indicator (0/1).
     surv_time : str
-        Column in ``clinical_df`` containing survival time.
+        Column in `clinical_df` containing survival time.
 
     Examples
     --------

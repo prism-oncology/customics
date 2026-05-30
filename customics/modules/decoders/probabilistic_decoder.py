@@ -12,7 +12,7 @@ class ProbabilisticDecoder(nn.Module):
     """Generative network for the variational autoencoder.
 
     Applies a sigmoid activation on the output so reconstructions are in
-    ``[0, 1]``.
+    `[0, 1]`.
 
     Parameters
     ----------
@@ -24,7 +24,7 @@ class ProbabilisticDecoder(nn.Module):
     output_dim : int
         Dimension of the reconstructed output.
     norm_layer : type or bool
-        Normalization layer class or ``True`` for ``nn.BatchNorm1d``.
+        Normalization layer class or `True` for `nn.BatchNorm1d`.
     leaky_slope : float
         Negative slope for LeakyReLU activations.
     dropout : float
@@ -72,7 +72,7 @@ class ProbabilisticDecoder(nn.Module):
         self.net = nn.Sequential(layers)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
-        """Decode latent vector ``z`` to data space.
+        """Decode latent vector `z` to data space.
 
         Parameters
         ----------
@@ -82,6 +82,6 @@ class ProbabilisticDecoder(nn.Module):
         Returns
         -------
         torch.Tensor
-            Reconstructed tensor in ``[0, 1]``, shape (batch, output_dim).
+            Reconstructed tensor in `[0, 1]`, shape (batch, output_dim).
         """
         return torch.sigmoid(self.net(z))

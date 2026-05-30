@@ -22,21 +22,21 @@ class FullyConnectedLayer(nn.Module):
     output_dim : int
         Output feature dimension.
     norm_layer : type or bool, optional
-        Normalization layer class (e.g. ``nn.BatchNorm1d``) or ``True`` to use
-        the default ``nn.BatchNorm1d``.  Pass ``False`` or ``None`` to skip
-        normalisation (equivalent to ``normalization=False``).
+        Normalization layer class (e.g. `nn.BatchNorm1d`) or `True` to use
+        the default `nn.BatchNorm1d`.  Pass `False` or `None` to skip
+        normalisation (equivalent to `normalization=False`).
     leaky_slope : float
         Negative slope for LeakyReLU.
     dropout : float
-        Dropout probability; disabled when ``<= 0``.
+        Dropout probability; disabled when `<= 0`.
     activation : bool
         Whether to append an activation function.
     normalization : bool
         Whether to append a batch-normalisation layer.
     activation_name : str
         Name of the activation function (case-insensitive).  Supported values:
-        ``'relu'``, ``'sigmoid'``, ``'leakyrelu'``, ``'tanh'``, ``'softmax'``,
-        ``'no'``.
+        `'relu'`, `'sigmoid'`, `'leakyrelu'`, `'tanh'`, `'softmax'`,
+        `'no'`.
     """
 
     def __init__(

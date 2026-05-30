@@ -18,13 +18,13 @@ class MultiClassifier(nn.Module):
     latent_dim : int
         Dimension of the input latent representation.
     norm_layer : type
-        Normalization layer class (default: ``nn.BatchNorm1d``).
+        Normalization layer class (default: `nn.BatchNorm1d`).
     leaky_slope : float
         Negative slope for LeakyReLU.
     dropout : float
         Dropout probability.
     class_dim : list of int
-        Hidden layer sizes between ``latent_dim`` and the output.
+        Hidden layer sizes between `latent_dim` and the output.
 
     Examples
     --------

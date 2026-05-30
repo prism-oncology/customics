@@ -23,7 +23,7 @@ def roc_auc_score_multiclass(
     y_pred : np.ndarray
         Predicted class probabilities, shape (n_samples, n_classes).
     ohe : OneHotEncoder
-        Fitted encoder used to binarise ``y_true``.
+        Fitted encoder used to binarise `y_true`.
     average : str
         Averaging strategy passed to :func:`sklearn.metrics.roc_auc_score`.
 
@@ -58,7 +58,7 @@ def multi_classification_evaluation(
     average : str
         Averaging strategy for precision, recall, and F1.
     save_confusion : bool
-        If True, save a confusion matrix heatmap to ``filename``.
+        If True, save a confusion matrix heatmap to `filename`.
     filename : str, optional
         Path prefix for the confusion matrix image (without extension).
     ohe : OneHotEncoder, optional
@@ -67,8 +67,8 @@ def multi_classification_evaluation(
     Returns
     -------
     dict
-        Keys: ``'Accuracy'``, ``'F1-score'``, ``'Precision'``, ``'Recall'``,
-        ``'AUC'``.
+        Keys: `'Accuracy'`, `'F1-score'`, `'Precision'`, `'Recall'`,
+        `'AUC'`.
     """
     scores: dict[str, float] = {
         "Accuracy": metrics.accuracy_score(y_true, y_pred),
@@ -111,7 +111,7 @@ def plot_roc_multiclass(
     y_pred_proba : np.ndarray
         Predicted class probabilities, shape (n_samples, n_classes).
     filename : str
-        If non-empty, save the figure to ``roc_multi_{filename}.png``.
+        If non-empty, save the figure to `roc_multi_{filename}.png`.
     n_classes : int
         Number of classes.
     var_names : list of str, optional

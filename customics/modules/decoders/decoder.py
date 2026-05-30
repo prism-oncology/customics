@@ -21,7 +21,7 @@ class Decoder(nn.Module):
     output_dim : int
         Dimension of the reconstructed output.
     norm_layer : type or bool
-        Normalization layer class or ``True`` for ``nn.BatchNorm1d``.
+        Normalization layer class or `True` for `nn.BatchNorm1d`.
     leaky_slope : float
         Negative slope for LeakyReLU activations.
     dropout : float
@@ -69,7 +69,7 @@ class Decoder(nn.Module):
         self.net = nn.Sequential(layers)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
-        """Decode latent vector ``z`` to data space.
+        """Decode latent vector `z` to data space.
 
         Parameters
         ----------

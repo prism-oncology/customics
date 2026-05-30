@@ -27,7 +27,7 @@ class AutoEncoder(nn.Module):
         self.to(device)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """Encode ``x`` and reconstruct it.
+        """Encode `x` and reconstruct it.
 
         Parameters
         ----------

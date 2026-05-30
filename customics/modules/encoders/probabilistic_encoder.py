@@ -12,7 +12,7 @@ class ProbabilisticEncoder(nn.Module):
     """Inference network for the variational autoencoder.
 
     Outputs the mean and log-variance of the approximate posterior
-    ``q(z | x)``.
+    `q(z | x)`.
 
     Parameters
     ----------
@@ -23,7 +23,7 @@ class ProbabilisticEncoder(nn.Module):
     latent_dim : int
         Dimension of the latent space.
     norm_layer : type or bool
-        Normalization layer class or ``True`` for ``nn.BatchNorm1d``.
+        Normalization layer class or `True` for `nn.BatchNorm1d`.
     leaky_slope : float
         Negative slope for LeakyReLU activations.
     dropout : float

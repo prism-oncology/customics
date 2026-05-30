@@ -48,7 +48,7 @@ def get_sub_omics_df(omics_df: dict[str, pd.DataFrame], lt_samples: list[str]) -
     Returns
     -------
     dict
-        Same structure as ``omics_df`` but rows restricted to ``lt_samples``.
+        Same structure as `omics_df` but rows restricted to `lt_samples`.
     """
     return {key: df.loc[lt_samples, :] for key, df in omics_df.items()}
 
@@ -66,7 +66,7 @@ def save_splits(lt_samples: list[str], cohort: str, split_dir: str = "splits") -
     lt_samples : list of str
         All sample IDs.
     cohort : str
-        Cohort name used to create a subdirectory under ``split_dir``.
+        Cohort name used to create a subdirectory under `split_dir`.
     split_dir : str
         Root directory for split files.
     """
@@ -100,7 +100,7 @@ def get_splits(cohort: str, split: int, split_dir: str = "splits") -> tuple[list
     Returns
     -------
     tuple of (list, list, list)
-        ``(samples_train, samples_val, samples_test)``.
+        `(samples_train, samples_val, samples_test)`.
     """
     out_dir = os.path.join(split_dir, cohort)
     result = []
