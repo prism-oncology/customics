@@ -16,11 +16,11 @@ This notebook walks through a complete **customics** workflow on the bundled toy
 ## Architecture at a glance
 
 ```
-  protein  ──► AE_protein ──┐
+  protein  ──► AE_protein  ──┐
                              │
   gene_exp ──► AE_gene   ──►─┤  Central VAE  ──► Classifier (tumour subtype)
                              │   (latent z)
-  methyl   ──► AE_methyl ──┘               └──► Survival predictor (Cox)
+  methyl   ──► AE_methyl   ──┘               └──► Survival predictor (Cox)
 ```
 
 **Phase 1** (epochs 0 → `switch`): each source autoencoder is trained
