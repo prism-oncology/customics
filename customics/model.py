@@ -770,18 +770,25 @@ class CustOMICS(nn.Module):
 
         expr_df = expr_df.loc[sample_id, :]
         background = addToTensor(randomTrainingSample(expr_df, 10), device)
-        foreground = addToTensor(
-            splitExprandSample(condition=condition, sample_size=10, expr=expr_df),
-            device,
-        )
+        foreground_df = splitExprandSample(condition=condition, sample_size=10, expr=expr_df)
+        foreground = addToTensor(foreground_df, device)
 
+        class_idx = int(self.label_encoder.transform([subtype])[0])
         explainer = shap.DeepExplainer(ModelWrapper(self, source=source), background)
         shap_values = explainer.shap_values(foreground, ranked_outputs=None)
 
-        tumour_expr = expr_df.head(10)
+        # SHAP ≥0.46 stacks class outputs into (n_samples, n_features, n_classes);
+        # older versions return a list indexed [class][sample, feature].
+        import numpy as np
+
+        if isinstance(shap_values, np.ndarray) and shap_values.ndim == 3:
+            sv = shap_values[..., class_idx]
+        else:
+            sv = shap_values[class_idx]
+
         shap.summary_plot(
-            shap_values[0],
-            features=tumour_expr,
+            sv,
+            features=foreground_df,
             feature_names=list(expr_df.columns),
             show=False,
             plot_type="violin",
@@ -792,6 +799,12 @@ class CustOMICS(nn.Module):
         if show:
             plt.show()
         plt.clf()
+
+        # SHAP registers forward/backward hook tensors as nn.Parameter on each
+        # module. Remove them so state_dict() stays clean for save/load.
+        for module in self.modules():
+            module._parameters.pop("x", None)
+            module._parameters.pop("y", None)
 
     # ------------------------------------------------------------------ #
     # Utilities

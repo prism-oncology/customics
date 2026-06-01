@@ -4,12 +4,13 @@ This notebook walks through a complete **customics** workflow on the bundled toy
 
 1. Load and explore multi-omics data
 2. Split into train / validation / test sets
-3. Configure and train a `CustOMICS` model
-4. Evaluate classification and survival performance
-5. Visualise the learned latent space
-6. Stratify patients by predicted risk (Kaplan-Meier)
-7. Explain model decisions with SHAP values
-8. Save and reload a trained model
+3. Configure the model architecture
+4. Build and train a `CustOMICS` model
+5. Evaluate classification and survival performance
+6. Visualise the learned latent space
+7. Stratify patients by predicted risk (Kaplan-Meier)
+8. Explain model decisions with SHAP values
+9. Save and reload a trained model
 
 ---
 
@@ -86,319 +87,22 @@ omics_df.keys()
 omics_df["protein"]
 ```
 
+```
+probe        ACC1  ACC_pS79    ACVRL1  Akt_pS473  ...  14.3.3_zeta
+subject1   -0.528    -0.827     2.465      0.118  ...        0.391
+subject2   -0.804    -0.859     2.680      1.164  ...        1.084
+subject3    0.596     0.176     2.782     -1.550  ...        0.355
+subject4    2.307     2.388     2.153      0.175  ...       -0.635
+subject5   -0.949    -0.641     2.242      0.830  ...        0.446
+...           ...       ...       ...        ...  ...          ...
+subject96  -0.981    -0.742     2.528      2.461  ...        0.473
+subject97   0.537     0.060     0.459     -0.383  ...        2.912
+subject98   2.629     2.712     2.142      0.352  ...       -0.060
+subject99  -0.059    -0.021     3.016      1.550  ...        0.122
+subject100  1.731     1.670     2.633      0.366  ...        1.160
 
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>probe</th>
-      <th>ACC1</th>
-      <th>ACC_pS79</th>
-      <th>ACVRL1</th>
-      <th>Akt_pS473</th>
-      <th>PRAS40_pT246</th>
-      <th>Annexin.1</th>
-      <th>AR</th>
-      <th>A.Raf_pS299</th>
-      <th>ASNS</th>
-      <th>ATM</th>
-      <th>...</th>
-      <th>XBP1</th>
-      <th>XRCC1</th>
-      <th>Ku80</th>
-      <th>YAP</th>
-      <th>YAP_pS127</th>
-      <th>YB.1</th>
-      <th>YB.1_pS102</th>
-      <th>14.3.3_beta</th>
-      <th>14.3.3_epsilon</th>
-      <th>14.3.3_zeta</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>subject1</th>
-      <td>-0.528421</td>
-      <td>-0.826949</td>
-      <td>2.465380</td>
-      <td>0.118108</td>
-      <td>2.682673</td>
-      <td>-0.473918</td>
-      <td>2.692947</td>
-      <td>0.392130</td>
-      <td>-1.458304</td>
-      <td>-0.518608</td>
-      <td>...</td>
-      <td>2.365702</td>
-      <td>-0.115504</td>
-      <td>2.125662</td>
-      <td>0.198529</td>
-      <td>0.263075</td>
-      <td>2.035369</td>
-      <td>3.276020</td>
-      <td>-0.164232</td>
-      <td>2.240264</td>
-      <td>0.390613</td>
-    </tr>
-    <tr>
-      <th>subject2</th>
-      <td>-0.804377</td>
-      <td>-0.858630</td>
-      <td>2.679618</td>
-      <td>1.163897</td>
-      <td>2.789568</td>
-      <td>0.326823</td>
-      <td>3.703054</td>
-      <td>-0.207030</td>
-      <td>-0.567368</td>
-      <td>-1.447359</td>
-      <td>...</td>
-      <td>2.369684</td>
-      <td>-0.250648</td>
-      <td>2.028639</td>
-      <td>0.294427</td>
-      <td>0.087710</td>
-      <td>2.748533</td>
-      <td>2.655492</td>
-      <td>-0.020322</td>
-      <td>2.584052</td>
-      <td>1.083867</td>
-    </tr>
-    <tr>
-      <th>subject3</th>
-      <td>0.596001</td>
-      <td>0.175652</td>
-      <td>2.782368</td>
-      <td>-1.550062</td>
-      <td>2.136330</td>
-      <td>-0.729363</td>
-      <td>3.987616</td>
-      <td>-0.065740</td>
-      <td>0.225819</td>
-      <td>0.321197</td>
-      <td>...</td>
-      <td>2.912468</td>
-      <td>0.235292</td>
-      <td>3.102378</td>
-      <td>0.717648</td>
-      <td>0.118142</td>
-      <td>2.608048</td>
-      <td>1.894032</td>
-      <td>0.423970</td>
-      <td>2.470960</td>
-      <td>0.355451</td>
-    </tr>
-    <tr>
-      <th>subject4</th>
-      <td>2.306769</td>
-      <td>2.387911</td>
-      <td>2.152993</td>
-      <td>0.175379</td>
-      <td>-0.243862</td>
-      <td>0.206090</td>
-      <td>3.851968</td>
-      <td>-0.347185</td>
-      <td>1.595250</td>
-      <td>2.998184</td>
-      <td>...</td>
-      <td>0.019668</td>
-      <td>2.319597</td>
-      <td>0.211079</td>
-      <td>0.178415</td>
-      <td>0.312633</td>
-      <td>-0.205992</td>
-      <td>0.151597</td>
-      <td>2.289823</td>
-      <td>0.153826</td>
-      <td>-0.634842</td>
-    </tr>
-    <tr>
-      <th>subject5</th>
-      <td>-0.948945</td>
-      <td>-0.640623</td>
-      <td>2.242055</td>
-      <td>0.829983</td>
-      <td>2.732090</td>
-      <td>-0.218177</td>
-      <td>2.376110</td>
-      <td>-0.510938</td>
-      <td>-1.030711</td>
-      <td>-0.125802</td>
-      <td>...</td>
-      <td>2.169958</td>
-      <td>-0.044484</td>
-      <td>2.905596</td>
-      <td>0.539468</td>
-      <td>0.338059</td>
-      <td>2.257715</td>
-      <td>2.718098</td>
-      <td>-0.190475</td>
-      <td>2.523407</td>
-      <td>0.445861</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>subject96</th>
-      <td>-0.981248</td>
-      <td>-0.742083</td>
-      <td>2.527974</td>
-      <td>2.460686</td>
-      <td>2.390742</td>
-      <td>2.116470</td>
-      <td>0.837409</td>
-      <td>-0.025155</td>
-      <td>-1.101259</td>
-      <td>-0.367316</td>
-      <td>...</td>
-      <td>2.604496</td>
-      <td>1.630534</td>
-      <td>-0.311148</td>
-      <td>0.234731</td>
-      <td>1.039191</td>
-      <td>2.862392</td>
-      <td>2.740933</td>
-      <td>2.531392</td>
-      <td>0.050429</td>
-      <td>0.472795</td>
-    </tr>
-    <tr>
-      <th>subject97</th>
-      <td>0.536663</td>
-      <td>0.060382</td>
-      <td>0.458927</td>
-      <td>-0.383216</td>
-      <td>2.378299</td>
-      <td>0.756384</td>
-      <td>4.229011</td>
-      <td>2.757901</td>
-      <td>-0.751035</td>
-      <td>1.863307</td>
-      <td>...</td>
-      <td>-0.084031</td>
-      <td>2.216205</td>
-      <td>0.362061</td>
-      <td>2.739422</td>
-      <td>2.292162</td>
-      <td>-0.643265</td>
-      <td>-0.223000</td>
-      <td>2.508272</td>
-      <td>3.067408</td>
-      <td>2.912263</td>
-    </tr>
-    <tr>
-      <th>subject98</th>
-      <td>2.628799</td>
-      <td>2.711571</td>
-      <td>2.142075</td>
-      <td>0.352148</td>
-      <td>0.197317</td>
-      <td>-0.931261</td>
-      <td>4.508386</td>
-      <td>-0.193342</td>
-      <td>2.651727</td>
-      <td>0.789640</td>
-      <td>...</td>
-      <td>-0.234933</td>
-      <td>2.689975</td>
-      <td>-0.037623</td>
-      <td>0.195504</td>
-      <td>0.096643</td>
-      <td>0.159894</td>
-      <td>0.183006</td>
-      <td>2.197074</td>
-      <td>-0.324651</td>
-      <td>-0.060220</td>
-    </tr>
-    <tr>
-      <th>subject99</th>
-      <td>-0.059092</td>
-      <td>-0.020732</td>
-      <td>3.016003</td>
-      <td>1.549904</td>
-      <td>1.971049</td>
-      <td>1.654036</td>
-      <td>1.467497</td>
-      <td>-0.504267</td>
-      <td>-0.116719</td>
-      <td>-0.117848</td>
-      <td>...</td>
-      <td>2.075979</td>
-      <td>2.217837</td>
-      <td>-0.176108</td>
-      <td>0.348526</td>
-      <td>-0.243009</td>
-      <td>1.958754</td>
-      <td>2.193575</td>
-      <td>2.565817</td>
-      <td>0.311603</td>
-      <td>0.121928</td>
-    </tr>
-    <tr>
-      <th>subject100</th>
-      <td>1.731216</td>
-      <td>1.670435</td>
-      <td>2.633373</td>
-      <td>0.366491</td>
-      <td>2.855960</td>
-      <td>1.096609</td>
-      <td>3.418500</td>
-      <td>-0.062650</td>
-      <td>-1.427957</td>
-      <td>2.219091</td>
-      <td>...</td>
-      <td>-0.559502</td>
-      <td>0.043594</td>
-      <td>2.558502</td>
-      <td>3.173615</td>
-      <td>3.154849</td>
-      <td>-0.119741</td>
-      <td>0.350287</td>
-      <td>0.005934</td>
-      <td>2.707022</td>
-      <td>1.160486</td>
-    </tr>
-  </tbody>
-</table>
-<p>100 rows × 160 columns</p>
-</div>
+[100 rows × 160 columns]
+```
 
 
 
@@ -414,115 +118,21 @@ omics_df["protein"]
 clinical_df
 ```
 
+| subject    | subjects | cluster.id | OS | OS.time |
+|------------|----------|------------|----|---------|
+| subject1   | 1        | 5          | 0  | 2531    |
+| subject2   | 2        | 5          | 1  | 759     |
+| subject3   | 3        | 5          | 1  | 2453    |
+| subject4   | 4        | 3          | 0  | 220     |
+| subject5   | 5        | 5          | 0  | 2431    |
+| ...        | ...      | ...        | ...| ...     |
+| subject96  | 96       | 2          | 0  | 445     |
+| subject97  | 97       | 4          | 0  | 1159    |
+| subject98  | 98       | 3          | 1  | 530     |
+| subject99  | 99       | 2          | 1  | 1149    |
+| subject100 | 100      | 1          | 0  | 2893    |
 
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>subjects</th>
-      <th>cluster.id</th>
-      <th>OS</th>
-      <th>OS.time</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>subject1</th>
-      <td>1</td>
-      <td>5</td>
-      <td>0</td>
-      <td>2531</td>
-    </tr>
-    <tr>
-      <th>subject2</th>
-      <td>2</td>
-      <td>5</td>
-      <td>1</td>
-      <td>759</td>
-    </tr>
-    <tr>
-      <th>subject3</th>
-      <td>3</td>
-      <td>5</td>
-      <td>1</td>
-      <td>2453</td>
-    </tr>
-    <tr>
-      <th>subject4</th>
-      <td>4</td>
-      <td>3</td>
-      <td>0</td>
-      <td>220</td>
-    </tr>
-    <tr>
-      <th>subject5</th>
-      <td>5</td>
-      <td>5</td>
-      <td>0</td>
-      <td>2431</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>subject96</th>
-      <td>96</td>
-      <td>2</td>
-      <td>0</td>
-      <td>445</td>
-    </tr>
-    <tr>
-      <th>subject97</th>
-      <td>97</td>
-      <td>4</td>
-      <td>0</td>
-      <td>1159</td>
-    </tr>
-    <tr>
-      <th>subject98</th>
-      <td>98</td>
-      <td>3</td>
-      <td>1</td>
-      <td>530</td>
-    </tr>
-    <tr>
-      <th>subject99</th>
-      <td>99</td>
-      <td>2</td>
-      <td>1</td>
-      <td>1149</td>
-    </tr>
-    <tr>
-      <th>subject100</th>
-      <td>100</td>
-      <td>1</td>
-      <td>0</td>
-      <td>2893</td>
-    </tr>
-  </tbody>
-</table>
-<p>100 rows × 4 columns</p>
-</div>
+*[100 rows × 4 columns]*
 
 
 
@@ -818,39 +428,44 @@ model.fit(
 )
 ```
 
-    [36;20m[INFO] (customics.model)[0m Epoch 1/30 | train=28.4917 | val=32.4595
-    [36;20m[INFO] (customics.model)[0m Epoch 2/30 | train=24.1982 | val=30.1953
-    [36;20m[INFO] (customics.model)[0m Epoch 3/30 | train=18.2897 | val=26.9450
-    [36;20m[INFO] (customics.model)[0m Epoch 4/30 | train=16.7007 | val=23.7568
-    [36;20m[INFO] (customics.model)[0m Epoch 5/30 | train=15.2662 | val=20.3442
-    [36;20m[INFO] (customics.model)[0m Epoch 6/30 | train=15.6759 | val=16.3787
-    [36;20m[INFO] (customics.model)[0m Epoch 7/30 | train=13.1489 | val=16.1814
-    [36;20m[INFO] (customics.model)[0m Epoch 8/30 | train=11.5617 | val=16.1389
-    [36;20m[INFO] (customics.model)[0m Epoch 9/30 | train=10.8479 | val=14.5620
-    [36;20m[INFO] (customics.model)[0m Epoch 10/30 | train=10.2700 | val=14.7346
-    [36;20m[INFO] (customics.model)[0m Epoch 11/30 | train=13.2465 | val=13.7110
-    [36;20m[INFO] (customics.model)[0m Epoch 12/30 | train=8.7209 | val=13.5023
-    [36;20m[INFO] (customics.model)[0m Epoch 13/30 | train=10.4842 | val=11.0960
-    [36;20m[INFO] (customics.model)[0m Epoch 14/30 | train=9.0919 | val=10.6878
-    [36;20m[INFO] (customics.model)[0m Epoch 15/30 | train=8.5125 | val=10.5673
-    [36;20m[INFO] (customics.model)[0m Epoch 16/30 | train=7.1673 | val=8.5255
-    [36;20m[INFO] (customics.model)[0m Epoch 17/30 | train=5.6954 | val=7.2609
-    [36;20m[INFO] (customics.model)[0m Epoch 18/30 | train=3.7520 | val=6.6319
-    [36;20m[INFO] (customics.model)[0m Epoch 19/30 | train=3.9967 | val=6.2724
-    [36;20m[INFO] (customics.model)[0m Epoch 20/30 | train=6.0441 | val=5.0781
-    [36;20m[INFO] (customics.model)[0m Epoch 21/30 | train=6.8372 | val=4.5348
-    [36;20m[INFO] (customics.model)[0m Epoch 22/30 | train=4.3612 | val=4.4146
-    [36;20m[INFO] (customics.model)[0m Epoch 23/30 | train=3.8013 | val=4.3407
-    [36;20m[INFO] (customics.model)[0m Epoch 24/30 | train=3.9107 | val=4.2530
-    [36;20m[INFO] (customics.model)[0m Epoch 25/30 | train=3.2288 | val=4.6227
-    [36;20m[INFO] (customics.model)[0m Epoch 26/30 | train=3.0911 | val=4.8295
-    [36;20m[INFO] (customics.model)[0m Epoch 27/30 | train=3.6982 | val=4.6160
-    [36;20m[INFO] (customics.model)[0m Epoch 28/30 | train=3.1297 | val=4.7703
-    [36;20m[INFO] (customics.model)[0m Epoch 29/30 | train=4.2564 | val=4.7967
-    [36;20m[INFO] (customics.model)[0m Epoch 30/30 | train=5.3091 | val=4.3446
+    [INFO] (customics.model) Epoch 1/30 | train=28.4917 | val=32.4595
+    [INFO] (customics.model) Epoch 2/30 | train=24.1982 | val=30.1953
+    [INFO] (customics.model) Epoch 3/30 | train=18.2897 | val=26.9450
+    [INFO] (customics.model) Epoch 4/30 | train=16.7007 | val=23.7568
+    [INFO] (customics.model) Epoch 5/30 | train=15.2662 | val=20.3442
+    [INFO] (customics.model) Epoch 6/30 | train=15.6759 | val=16.3787
+    [INFO] (customics.model) Epoch 7/30 | train=13.1489 | val=16.1814
+    [INFO] (customics.model) Epoch 8/30 | train=11.5617 | val=16.1389
+    [INFO] (customics.model) Epoch 9/30 | train=10.8479 | val=14.5620
+    [INFO] (customics.model) Epoch 10/30 | train=10.2700 | val=14.7346
+    [INFO] (customics.model) Epoch 11/30 | train=13.2465 | val=13.7110
+    [INFO] (customics.model) Epoch 12/30 | train=8.7209 | val=13.5023
+    [INFO] (customics.model) Epoch 13/30 | train=10.4842 | val=11.0960
+    [INFO] (customics.model) Epoch 14/30 | train=9.0919 | val=10.6878
+    [INFO] (customics.model) Epoch 15/30 | train=8.5125 | val=10.5673
+    [INFO] (customics.model) Epoch 16/30 | train=7.1673 | val=8.5255
+    [INFO] (customics.model) Epoch 17/30 | train=5.6954 | val=7.2609
+    [INFO] (customics.model) Epoch 18/30 | train=3.7520 | val=6.6319
+    [INFO] (customics.model) Epoch 19/30 | train=3.9967 | val=6.2724
+    [INFO] (customics.model) Epoch 20/30 | train=6.0441 | val=5.0781
+    [INFO] (customics.model) Epoch 21/30 | train=6.8372 | val=4.5348
+    [INFO] (customics.model) Epoch 22/30 | train=4.3612 | val=4.4146
+    [INFO] (customics.model) Epoch 23/30 | train=3.8013 | val=4.3407
+    [INFO] (customics.model) Epoch 24/30 | train=3.9107 | val=4.2530
+    [INFO] (customics.model) Epoch 25/30 | train=3.2288 | val=4.6227
+    [INFO] (customics.model) Epoch 26/30 | train=3.0911 | val=4.8295
+    [INFO] (customics.model) Epoch 27/30 | train=3.6982 | val=4.6160
+    [INFO] (customics.model) Epoch 28/30 | train=3.1297 | val=4.7703
+    [INFO] (customics.model) Epoch 29/30 | train=4.2564 | val=4.7967
+    [INFO] (customics.model) Epoch 30/30 | train=5.3091 | val=4.3446
 
 
 
+
+
+
+<details>
+<summary>Full model architecture (click to expand)</summary>
 
 
     CustOMICS(
@@ -1103,6 +718,9 @@ model.fit(
       )
     )
 
+</details>
+
+
 
 
 
@@ -1232,11 +850,6 @@ model.plot_representation(
 ![png](usage_files/usage_26_1.png)
 
 
-
-
-    <Figure size 640x480 with 0 Axes>
-
-
 ---
 
 ## 7. Survival Risk Stratification
@@ -1306,6 +919,7 @@ model.explain(
 )
 ```
 
+> **Note:** output not shown — `explain()` has a known bug being fixed separately.
 
 ```python
 # Feature importance for protein expression → subtype 1
@@ -1321,6 +935,7 @@ model.explain(
 )
 ```
 
+> **Note:** output not shown — `explain()` has a known bug being fixed separately.
 
 ```python
 # Feature importance for DNA methylation → subtype 1
@@ -1335,6 +950,8 @@ model.explain(
     show=True,
 )
 ```
+
+> **Note:** output not shown — `explain()` has a known bug being fixed separately.
 
 ---
 
@@ -1355,27 +972,19 @@ checkpoint_path = RESULTS_DIR / "customics_model.pt"
 
 # save() stores both the architecture config and the weight tensors.
 model.save(checkpoint_path)
-print(f"Model saved to: {checkpoint_path}")
 ```
 
-    [36;20m[INFO] (customics.model)[0m Model saved to results/customics_model.pt
-
-
-    Model saved to: results/customics_model.pt
+    [INFO] (customics.model) Model saved to results/customics_model.pt
 
 
 
 ```python
 # load() is a class method — it rebuilds the model from the checkpoint file.
 loaded_model = CustOMICS.load(checkpoint_path, device=device)
-print(f"Model loaded from: {checkpoint_path}")
 print(f"Parameters in loaded model: {loaded_model.get_number_parameters():,}")
 ```
 
-    [36;20m[INFO] (customics.model)[0m Model loaded from results/customics_model.pt
-
-
-    Model loaded from: results/customics_model.pt
+    [INFO] (customics.model) Model loaded from results/customics_model.pt
     Parameters in loaded model: 790,778
 
 

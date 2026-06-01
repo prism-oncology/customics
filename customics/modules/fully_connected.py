@@ -71,7 +71,7 @@ class FullyConnectedLayer(nn.Module):
             act_cls = _ACTIVATION_MAP[key]
             if act_cls is not None:
                 layers.append(
-                    act_cls(negative_slope=leaky_slope, inplace=True)
+                    act_cls(negative_slope=leaky_slope, inplace=False)
                     if key == "leakyrelu"
                     else (act_cls(dim=1) if key == "softmax" else act_cls())
                 )
