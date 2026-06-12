@@ -707,8 +707,7 @@ class CustOMICS(nn.Module):
     def explain(
         self,
         sample_id: list[str],
-        omics_df: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
+        mdata: MuData,
         source: str,
         subtype: str,
         label: str = "PAM50",
@@ -724,10 +723,8 @@ class CustOMICS(nn.Module):
         ----------
         sample_id:
             Sample IDs to use as the SHAP background and foreground sets.
-        omics_df:
-            Multi-omics data.
-        clinical_df : pd.DataFrame
-            Clinical metadata.
+        mdata : MuData
+            Multi-omics object whose ``obs`` holds the clinical metadata.
         source:
             Omics source key to explain.
         subtype:
@@ -756,9 +753,9 @@ class CustOMICS(nn.Module):
         )
 
         self._require_fitted()
-        expr_df = omics_df[source]
+        expr_df = mdata[source].to_df()
         sample_id = list(set(sample_id) & set(expr_df.index))
-        phenotype = processPhenotypeDataForSamples(clinical_df, sample_id, self.label_encoder)
+        phenotype = processPhenotypeDataForSamples(mdata.obs, sample_id, self.label_encoder)
         condition = phenotype[label] == subtype
 
         expr_df = expr_df.loc[sample_id, :]
