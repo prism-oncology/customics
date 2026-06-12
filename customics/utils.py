@@ -5,7 +5,11 @@ import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from anndata import AnnData
+from mudata import MuData
 from sklearn.model_selection import KFold, train_test_split
+
+from customics.exceptions import DataValidationError
 
 sns.set_style("darkgrid")
 sns.set_palette("muted")
@@ -42,27 +46,53 @@ def toy_dataset() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     return omics_df, clinical_df
 
 
+def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None:
+    """Validate clinical columns and register them in ``mdata.uns``.
+
+    Parameters
+    ----------
+    mdata : MuData
+        Multi-omics object whose ``obs`` holds the clinical annotations.
+    label : str
+        Name of the ``mdata.obs`` column used as the classification target.
+    event : str
+        Name of the ``mdata.obs`` column holding the survival event indicator
+        (1 = event, 0 = censored).
+    surv_time : str
+        Name of the ``mdata.obs`` column holding the survival time.
+
+    Raises
+    ------
+    DataValidationError
+        If any of the given columns is missing from ``mdata.obs``.
+    """
+    for key, column in {"label": label, "event": event, "surv_time": surv_time}.items():
+        if column not in mdata.obs:
+            raise DataValidationError(f"Column '{column}' not found in mdata.obs")
+        mdata.uns[f"customics_{key}"] = column
+
+
 # ---------------------------------------------------------------------------
 # Sample alignment
 # ---------------------------------------------------------------------------
 
 
-def get_common_samples(dfs: list[pd.DataFrame]) -> list[str]:
-    """Return sample IDs present in every DataFrame.
+def get_common_samples(adatas: list[AnnData]) -> list[str]:
+    """Return sample IDs present in every AnnData.
 
     Parameters
     ----------
-    dfs : list of pd.DataFrame
-        DataFrames whose indices are sample IDs.
+    adatas : list of AnnData
+        AnnData objects whose ``obs_names`` are sample IDs.
 
     Returns
     -------
     list of str
         Sorted list of common sample IDs.
     """
-    common = set(dfs[0].index)
-    for df in dfs[1:]:
-        common &= set(df.index)
+    common = set(adatas[0].obs_names)
+    for adata in adatas[1:]:
+        common &= set(adata.obs_names)
     return sorted(common)
 
 

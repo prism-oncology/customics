@@ -8,6 +8,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from lifelines import KaplanMeierFitter
+from mudata import MuData
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -367,12 +368,8 @@ class CustOMICS(nn.Module):
 
     def fit(
         self,
-        omics_train: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
-        label: str,
-        event: str,
-        surv_time: str,
-        omics_val: dict[str, pd.DataFrame] | None = None,
+        mdata: MuData,
+        omics_val: MuData | None = None,
         batch_size: int = 32,
         n_epochs: int = 30,
         verbose: bool = False,
@@ -381,16 +378,8 @@ class CustOMICS(nn.Module):
 
         Parameters
         ----------
-        omics_train:
-            Training omics data.  Each DataFrame must be indexed by sample ID.
-        clinical_df:
-            Clinical metadata indexed by sample ID.
-        label:
-            Column in `clinical_df` containing class labels.
-        event:
-            Column in `clinical_df` containing the event indicator (0/1).
-        surv_time:
-            Column in `clinical_df` containing survival time.
+        mdata : MuData
+            Multi-omics object whose ``obs`` holds the clinical annotations.
         omics_val:
             Validation omics data; same format as `omics_train`.
         batch_size:
@@ -410,9 +399,19 @@ class CustOMICS(nn.Module):
         DataValidationError
             If required columns are missing or samples don't overlap.
         """
-        self._validate_fit_inputs(omics_train, clinical_df, label, event, surv_time)
+        # self._validate_fit_inputs(omics_train, clinical_df, label, event, surv_time)
 
-        encoded_clinical = clinical_df.copy()
+        required_keys = ("customics_label", "customics_event", "customics_surv_time")
+        if not all(key in mdata.uns for key in required_keys):
+            raise DataValidationError(
+                "Clinical targets are not registered in mdata.uns. Please run `customics.prepare_input` first."
+            )
+        label = mdata.uns["customics_label"]
+        event = mdata.uns["customics_event"]
+        surv_time = mdata.uns["customics_surv_time"]
+
+        encoded_clinical = mdata.obs.copy()
+
         self.label_encoder = LabelEncoder().fit(encoded_clinical[label].values)
         encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
         # Fit OHE on integer-encoded labels so it can transform integer y_true at eval time
@@ -420,10 +419,10 @@ class CustOMICS(nn.Module):
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
 
-        lt_train = get_common_samples([*list(omics_train.values()), clinical_df])
-        self.baseline = self._compute_baseline(clinical_df, lt_train, event, surv_time)
+        lt_train = get_common_samples([*list(mdata.mod.values()), mdata])
+        self.baseline = self._compute_baseline(mdata.obs, lt_train, event, surv_time)
         train_loader = DataLoader(
-            MultiOmicsDataset(omics_train, encoded_clinical, lt_train, label, event, surv_time),
+            MultiOmicsDataset(mdata, encoded_clinical, lt_train, label, event, surv_time),
             batch_size=batch_size,
             shuffle=True,
             **loader_kw,
@@ -431,7 +430,7 @@ class CustOMICS(nn.Module):
 
         val_loader: DataLoader | None = None
         if omics_val is not None:
-            lt_val = get_common_samples([*list(omics_val.values()), clinical_df])
+            lt_val = get_common_samples([*list(mdata.mod.values()), mdata])
             val_loader = DataLoader(
                 MultiOmicsDataset(omics_val, encoded_clinical, lt_val, label, event, surv_time),
                 batch_size=batch_size,
@@ -462,23 +461,23 @@ class CustOMICS(nn.Module):
         self._is_fitted = True
         return self
 
-    def _validate_fit_inputs(
-        self,
-        omics_train: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
-        label: str,
-        event: str,
-        surv_time: str,
-    ) -> None:
-        for col in (label, event, surv_time):
-            if col not in clinical_df.columns:
-                raise DataValidationError(
-                    f"Column '{col}' not found in clinical_df. Available: {list(clinical_df.columns)}."
-                )
-        for source, df in omics_train.items():
-            overlap = set(df.index) & set(clinical_df.index)
-            if not overlap:
-                raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_df.")
+    # def _validate_fit_inputs(
+    #     self,
+    #     omics_train: dict[str, pd.DataFrame],
+    #     clinical_df: pd.DataFrame,
+    #     label: str,
+    #     event: str,
+    #     surv_time: str,
+    # ) -> None:
+    #     for col in (label, event, surv_time):
+    #         if col not in clinical_df.columns:
+    #             raise DataValidationError(
+    #                 f"Column '{col}' not found in clinical_df. Available: {list(clinical_df.columns)}."
+    #             )
+    #     for source, df in omics_train.items():
+    #         overlap = set(df.index) & set(clinical_df.index)
+    #         if not overlap:
+    #             raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_df.")
 
     def _compute_baseline(
         self,
@@ -603,11 +602,7 @@ class CustOMICS(nn.Module):
 
     def evaluate(
         self,
-        omics_test: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
-        label: str,
-        event: str,
-        surv_time: str,
+        mdata: MuData,
         task: str,
         batch_size: int = 32,
         plot_roc: bool = False,
@@ -616,16 +611,8 @@ class CustOMICS(nn.Module):
 
         Parameters
         ----------
-        omics_test:
-            Test omics data.
-        clinical_df:
-            Clinical metadata.
-        label:
-            Class-label column.
-        event:
-            Event-indicator column.
-        surv_time:
-            Survival-time column.
+        mdata : MuData
+            Multi-omics object whose ``obs`` holds the clinical annotations.
         task:
             `'classification'` or `'survival'`.
         batch_size:
@@ -652,13 +639,17 @@ class CustOMICS(nn.Module):
         if task not in ("classification", "survival"):
             raise ValueError(f"task must be 'classification' or 'survival', got '{task}'.")
 
-        encoded_clinical = clinical_df.copy()
+        label = mdata.uns["customics_label"]
+        event = mdata.uns["customics_event"]
+        surv_time = mdata.uns["customics_surv_time"]
+
+        encoded_clinical = mdata.obs.copy()
         encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
-        lt_samples = get_common_samples([*list(omics_test.values()), clinical_df])
+        lt_samples = get_common_samples([*list(mdata.mod.values()), mdata])
         test_loader = DataLoader(
-            MultiOmicsDataset(omics_test, encoded_clinical, lt_samples, label, event, surv_time),
+            MultiOmicsDataset(mdata, encoded_clinical, lt_samples, label, event, surv_time),
             batch_size=batch_size,
             shuffle=False,
             **loader_kw,
@@ -703,7 +694,7 @@ class CustOMICS(nn.Module):
                 y_pred_proba=y_proba,
                 filename="test",
                 n_classes=self.num_classes,
-                var_names=np.unique(clinical_df[label].values.tolist()).tolist(),
+                var_names=np.unique(mdata.obs[label].values.tolist()).tolist(),
             )
         return multi_classification_evaluation(y_true, y_pred, y_proba, ohe=self.one_hot_encoder)
 

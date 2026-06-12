@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import torch
+from mudata import MuData
 from torch.utils.data import Dataset
 
 
@@ -14,8 +15,8 @@ class MultiOmicsDataset(Dataset):
 
     Parameters
     ----------
-    omics_df : dict of str → pd.DataFrame
-        Multi-omics data.  Each DataFrame must be indexed by sample ID.
+    mdata : MuData
+            Multi-omics object.
     clinical_df : pd.DataFrame
         Clinical metadata indexed by sample ID.
     lt_samples : list of str
@@ -37,14 +38,14 @@ class MultiOmicsDataset(Dataset):
 
     def __init__(
         self,
-        omics_df: dict[str, pd.DataFrame],
+        mdata: MuData,
         clinical_df: pd.DataFrame,
         lt_samples: list[str],
         label: str | None,
         event: str,
         surv_time: str,
     ) -> None:
-        self.omics_df = omics_df
+        self.mdata = mdata
         self.clinical_df = clinical_df
         self.lt_samples = lt_samples
         self.label = label
@@ -56,7 +57,9 @@ class MultiOmicsDataset(Dataset):
 
     def __getitem__(self, index: int) -> tuple[list[torch.Tensor], int, int, int]:
         sample = self.lt_samples[index]
-        omics_data = [torch.tensor(df.loc[sample, :].values.astype(np.float32)) for df in self.omics_df.values()]
+        omics_data = [
+            torch.tensor(adata.to_df().loc[sample, :].values.astype(np.float32)) for adata in self.mdata.mod.values()
+        ]
         lbl = self.clinical_df.loc[sample, self.label] if self.label else 0
         os_time = int(self.clinical_df.loc[sample, self.surv_time])
         os_event = int(self.clinical_df.loc[sample, self.event])
