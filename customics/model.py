@@ -498,14 +498,14 @@ class CustOMICS(nn.Module):
 
     def get_latent_representation(
         self,
-        omics_df: dict[str, pd.DataFrame],
+        mdata: MuData,
     ) -> np.ndarray:
         """Compute the integrated central latent representation.
 
         Parameters
         ----------
-        omics_df:
-            Omics data for all sources (same keys as used in `fit`).
+        mdata : MuData
+            Multi-omics object with all sources (same keys as used in `fit`).
 
         Returns
         -------
@@ -519,18 +519,18 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        x = [torch.tensor(omics_df[s].values, dtype=torch.float32).to(self.device) for s in self.source_names]
+        x = [torch.tensor(mdata[mod].to_df().values, dtype=torch.float32).to(self.device) for mod in self.source_names]
         with torch.no_grad():
             z = self._get_central_representation(x)
         return z.cpu().numpy()
 
-    def predict(self, omics_df: dict[str, pd.DataFrame]) -> np.ndarray:
+    def predict(self, mdata: MuData) -> np.ndarray:
         """Predict class labels.
 
         Parameters
         ----------
-        omics_df : dict
-            Omics data matching the sources used in `fit`.
+        mdata : MuData
+            Multi-omics object matching the sources used in `fit`.
 
         Returns
         -------
@@ -544,18 +544,18 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        z = torch.tensor(self.get_latent_representation(omics_df), dtype=torch.float32).to(self.device)
+        z = torch.tensor(self.get_latent_representation(mdata), dtype=torch.float32).to(self.device)
         with torch.no_grad():
             logits = self.classifier(z)
         return torch.argmax(logits, dim=1).cpu().numpy()
 
-    def predict_survival(self, omics_df: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+    def predict_survival(self, mdata: MuData) -> dict[str, pd.DataFrame]:
         """Compute patient-level estimated survival functions.
 
         Parameters
         ----------
-        omics_df:
-            Omics data matching the sources used in `fit`.
+        mdata : MuData
+            Multi-omics object matching the sources used in `fit`.
 
         Returns
         -------
@@ -568,8 +568,8 @@ class CustOMICS(nn.Module):
             If called before `fit()`.
         """
         self._require_fitted()
-        lt_samples = get_common_samples(list(omics_df.values()))
-        z = torch.tensor(self.get_latent_representation(omics_df), dtype=torch.float32).to(self.device)
+        lt_samples = get_common_samples(list(mdata.mod.values()))
+        z = torch.tensor(self.get_latent_representation(mdata), dtype=torch.float32).to(self.device)
         self._set_eval_mode()
         with torch.no_grad():
             risk_scores = self.survival_predictor(z).cpu().numpy()
