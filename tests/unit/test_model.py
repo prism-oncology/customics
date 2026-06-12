@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from customics import CustOMICS
+from customics import CustOMICS, prepare_input
 from customics.exceptions import ConfigurationError, DataValidationError, ModelNotFittedError
 
 
@@ -147,15 +147,7 @@ class TestCustOMICSInstantiation:
 
 class TestCustOMICSFit:
     def test_fit_returns_self(
-        self,
-        source_params,
-        central_params,
-        classif_params,
-        surv_params,
-        train_params,
-        device,
-        omics_df,
-        clinical_df,
+        self, source_params, central_params, classif_params, surv_params, train_params, device, mu_data
     ):
         model = CustOMICS(
             source_params,
@@ -165,27 +157,16 @@ class TestCustOMICSFit:
             train_params,
             device,
         )
+        prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
         result = model.fit(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mu_data,
             n_epochs=2,
             batch_size=8,
         )
         assert result is model
 
     def test_history_populated(
-        self,
-        source_params,
-        central_params,
-        classif_params,
-        surv_params,
-        train_params,
-        device,
-        omics_df,
-        clinical_df,
+        self, source_params, central_params, classif_params, surv_params, train_params, device, mu_data
     ):
         model = CustOMICS(
             source_params,
@@ -195,12 +176,9 @@ class TestCustOMICSFit:
             train_params,
             device,
         )
+        prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
         model.fit(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mu_data,
             n_epochs=3,
             batch_size=8,
         )
@@ -214,10 +192,9 @@ class TestCustOMICSFit:
         surv_params,
         train_params,
         device,
-        omics_df,
-        clinical_df,
+        mu_data,
     ):
-        model = CustOMICS(
+        CustOMICS(
             source_params,
             central_params,
             classif_params,
@@ -226,13 +203,7 @@ class TestCustOMICSFit:
             device,
         )
         with pytest.raises(DataValidationError, match="not found"):
-            model.fit(
-                omics_df,
-                clinical_df,
-                label="nonexistent",
-                event="OS",
-                surv_time="OS.time",
-            )
+            prepare_input(mdata=mu_data, label="nonexistent", event="OS", surv_time="OS.time")
 
 
 class TestCustOMICSInference:
@@ -249,13 +220,9 @@ class TestCustOMICSInference:
         assert preds.min() >= 0
         assert preds.max() < 3  # N_CLASSES
 
-    def test_evaluate_classification_returns_dict(self, fitted_model, omics_df, clinical_df):
+    def test_evaluate_classification_returns_dict(self, fitted_model, mu_data):
         result = fitted_model.evaluate(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mu_data,
             task="classification",
             batch_size=8,
         )
@@ -263,26 +230,18 @@ class TestCustOMICSInference:
         assert "Accuracy" in result
         assert 0.0 <= result["Accuracy"] <= 1.0
 
-    def test_evaluate_survival_returns_float(self, fitted_model, omics_df, clinical_df):
+    def test_evaluate_survival_returns_float(self, fitted_model, mu_data):
         result = fitted_model.evaluate(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mu_data,
             task="survival",
             batch_size=8,
         )
         assert isinstance(result, float)
         assert 0.0 <= result <= 1.0
 
-    def test_invalid_task_raises(self, fitted_model, omics_df, clinical_df):
+    def test_invalid_task_raises(self, fitted_model, mu_data):
         with pytest.raises(ValueError, match="task must be"):
             fitted_model.evaluate(
-                omics_df,
-                clinical_df,
-                label="label",
-                event="OS",
-                surv_time="OS.time",
+                mu_data,
                 task="regression",
             )

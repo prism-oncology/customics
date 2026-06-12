@@ -4,10 +4,15 @@ All fixtures use tiny synthetic data so tests run fast on CPU without any
 external files.
 """
 
+import mudata
 import numpy as np
 import pandas as pd
 import pytest
 import torch
+from anndata import AnnData
+from mudata import MuData
+
+mudata.set_options(pull_on_update=False)
 
 N_SAMPLES = 20
 N_FEATURES_RNA = 50
@@ -53,6 +58,13 @@ def clinical_df(sample_ids):
         },
         index=sample_ids,
     )
+
+
+@pytest.fixture(scope="session")
+def mu_data(rna_df, cnv_df, clinical_df):
+    mdata = MuData({"rna": AnnData(rna_df), "cnv": AnnData(cnv_df)})
+    mdata.obs = clinical_df
+    return mdata
 
 
 @pytest.fixture(scope="session")
@@ -119,17 +131,8 @@ def device():
 
 
 @pytest.fixture(scope="session")
-def fitted_model(
-    source_params,
-    central_params,
-    classif_params,
-    surv_params,
-    train_params,
-    device,
-    omics_df,
-    clinical_df,
-):
-    from customics import CustOMICS
+def fitted_model(source_params, central_params, classif_params, surv_params, train_params, device, mu_data):
+    from customics import CustOMICS, prepare_input
 
     model = CustOMICS(
         source_params=source_params,
@@ -139,12 +142,11 @@ def fitted_model(
         train_params=train_params,
         device=device,
     )
+
+    prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+
     model.fit(
-        omics_train=omics_df,
-        clinical_df=clinical_df,
-        label="label",
-        event="OS",
-        surv_time="OS.time",
+        mdata=mu_data,
         n_epochs=3,
         batch_size=8,
         verbose=False,
