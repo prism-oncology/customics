@@ -430,9 +430,11 @@ class CustOMICS(nn.Module):
 
         val_loader: DataLoader | None = None
         if omics_val is not None:
-            lt_val = get_common_samples([*list(mdata.mod.values()), mdata])
+            lt_val = get_common_samples([*list(omics_val.mod.values()), omics_val])
+            val_clinical = omics_val.obs.copy()
+            val_clinical[label] = self.label_encoder.transform(val_clinical[label].values)
             val_loader = DataLoader(
-                MultiOmicsDataset(omics_val, encoded_clinical, lt_val, label, event, surv_time),
+                MultiOmicsDataset(omics_val, val_clinical, lt_val, label, event, surv_time),
                 batch_size=batch_size,
                 shuffle=False,
                 **loader_kw,
