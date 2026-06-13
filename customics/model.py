@@ -13,6 +13,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
+from ._constants import Keys
 from .datasets import MultiOmicsDataset
 from .exceptions import ConfigurationError, DataValidationError, ModelNotFittedError
 from .loss import CoxLoss, classification_loss
@@ -399,16 +400,12 @@ class CustOMICS(nn.Module):
         DataValidationError
             If required columns are missing or samples don't overlap.
         """
-        # self._validate_fit_inputs(omics_train, clinical_df, label, event, surv_time)
 
-        required_keys = ("customics_label", "customics_event", "customics_surv_time")
-        if not all(key in mdata.uns for key in required_keys):
-            raise DataValidationError(
-                "Clinical targets are not registered in mdata.uns. Please run `customics.prepare_input` first."
-            )
-        label = mdata.uns["customics_label"]
-        event = mdata.uns["customics_event"]
-        surv_time = mdata.uns["customics_surv_time"]
+        self._validate_fit_inputs(mdata, [Keys.LABEL, Keys.EVENT, Keys.SURV_TIME])
+
+        label = mdata.uns[Keys.LABEL]
+        event = mdata.uns[Keys.EVENT]
+        surv_time = mdata.uns[Keys.SURV_TIME]
 
         encoded_clinical = mdata.obs.copy()
 
@@ -463,23 +460,20 @@ class CustOMICS(nn.Module):
         self._is_fitted = True
         return self
 
-    # def _validate_fit_inputs(
-    #     self,
-    #     omics_train: dict[str, pd.DataFrame],
-    #     clinical_df: pd.DataFrame,
-    #     label: str,
-    #     event: str,
-    #     surv_time: str,
-    # ) -> None:
-    #     for col in (label, event, surv_time):
-    #         if col not in clinical_df.columns:
-    #             raise DataValidationError(
-    #                 f"Column '{col}' not found in clinical_df. Available: {list(clinical_df.columns)}."
-    #             )
-    #     for source, df in omics_train.items():
-    #         overlap = set(df.index) & set(clinical_df.index)
-    #         if not overlap:
-    #             raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_df.")
+    def _validate_fit_inputs(
+        self,
+        mdata: MuData,
+        clinical_params: list,
+    ) -> None:
+        if not all(key in mdata.uns for key in clinical_params):
+            raise DataValidationError(
+                "Clinical parameters are not registered in mdata.uns. Please run `customics.prepare_input` first."
+            )
+
+        for source, adata in mdata.mod.items():
+            overlap = set(adata.obs_names) & set(mdata.obs_names)
+            if not overlap:
+                raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_data.")
 
     def _compute_baseline(
         self,
