@@ -20,7 +20,7 @@ sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
 # ---------------------------------------------------------------------------
 
 
-def toy_dataset() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
+def toy_dataset() -> MuData:
     """Load toy multi-omics dataset from GitHub.
 
     Returns
@@ -43,7 +43,15 @@ def toy_dataset() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     clinical_df["OS"] = rng.integers(0, 2, size=len(clinical_df))  # 0 = censored, 1 = event
     clinical_df["OS.time"] = rng.integers(200, 3000, size=len(clinical_df))  # days
 
-    return omics_df, clinical_df
+    mdata = MuData({
+        "rna": AnnData(omics_df["gene_exp"]),
+        "protein": AnnData(omics_df["protein"]),
+        "methyl": AnnData(omics_df["methyl"]),
+    })
+
+    mdata.obs = clinical_df
+
+    return mdata
 
 
 def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None:
