@@ -125,8 +125,8 @@ def test_state_dict_save_load(
     model2.one_hot_encoder = model.one_hot_encoder
     model2.baseline = model.baseline
 
-    preds1 = model.predict(omics_df)
-    preds2 = model2.predict(omics_df)
+    preds1 = model.predict(mu_data)
+    preds2 = model2.predict(mu_data)
     np.testing.assert_array_equal(preds1, preds2)
 
 

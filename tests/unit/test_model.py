@@ -207,16 +207,16 @@ class TestCustOMICSFit:
 
 
 class TestCustOMICSInference:
-    def test_get_latent_shape(self, fitted_model, omics_df):
-        z = fitted_model.get_latent_representation(omics_df)
+    def test_get_latent_shape(self, fitted_model, mu_data):
+        z = fitted_model.get_latent_representation(mu_data)
         assert z.shape[0] == 20  # N_SAMPLES
 
-    def test_predict_shape(self, fitted_model, omics_df):
-        preds = fitted_model.predict(omics_df)
+    def test_predict_shape(self, fitted_model, mu_data):
+        preds = fitted_model.predict(mu_data)
         assert preds.shape == (20,)
 
-    def test_predict_classes_valid(self, fitted_model, omics_df):
-        preds = fitted_model.predict(omics_df)
+    def test_predict_classes_valid(self, fitted_model, mu_data):
+        preds = fitted_model.predict(mu_data)
         assert preds.min() >= 0
         assert preds.max() < 3  # N_CLASSES
 
