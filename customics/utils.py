@@ -25,9 +25,9 @@ def toy_dataset() -> MuData:
 
     Returns
     -------
-    tuple of (dict, pd.DataFrame)
-        - dict: Multi-omics dictionary (source name → DataFrame).
-        - DataFrame: Clinical metadata with sample IDs as index.
+    MuData object:
+        - mdata.mod: Multi-omics dictionary (modality name → AnnData).
+        - mdata.obs: Clinical metadata with sample IDs as index.
     """
     PREFIX = "https://raw.githubusercontent.com/prism-oncology/customics/refs/heads/main/data"
 
