@@ -6,8 +6,8 @@ from customics.datasets import MultiOmicsDataset
 
 
 class TestMultiOmicsDataset:
-    def test_len(self, omics_df, clinical_df, sample_ids):
-        ds = MultiOmicsDataset(omics_df, clinical_df, sample_ids, "label", "OS", "OS.time")
+    def test_len(self, mu_data, clinical_df, sample_ids):
+        ds = MultiOmicsDataset(mu_data, clinical_df, sample_ids, "label", "OS", "OS.time")
         assert len(ds) == len(sample_ids)
 
     def test_getitem_shapes(self, mu_data, clinical_df, sample_ids):
@@ -30,6 +30,6 @@ class TestMultiOmicsDataset:
         _, lbl, _, _ = ds[0]
         assert lbl == 0
 
-    def test_get_samples(self, omics_df, clinical_df, sample_ids):
-        ds = MultiOmicsDataset(omics_df, clinical_df, sample_ids, "label", "OS", "OS.time")
+    def test_get_samples(self, mu_data, clinical_df, sample_ids):
+        ds = MultiOmicsDataset(mu_data, clinical_df, sample_ids, "label", "OS", "OS.time")
         assert ds.get_samples() == sample_ids

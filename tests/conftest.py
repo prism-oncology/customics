@@ -41,11 +41,6 @@ def cnv_df(sample_ids):
 
 
 @pytest.fixture(scope="session")
-def omics_df(rna_df, cnv_df):
-    return {"rna": rna_df, "cnv": cnv_df}
-
-
-@pytest.fixture(scope="session")
 def clinical_df(sample_ids):
     rng = np.random.default_rng(44)
     classes = ["TypeA", "TypeB", "TypeC"]

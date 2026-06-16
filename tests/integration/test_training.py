@@ -86,7 +86,6 @@ def test_state_dict_save_load(
     surv_params,
     train_params,
     device,
-    omics_df,
     mu_data,
     tmp_path,
 ):

@@ -131,7 +131,7 @@ class TestCustOMICSInstantiation:
         surv_params,
         train_params,
         device,
-        omics_df,
+        mu_data,
     ):
         model = CustOMICS(
             source_params,
@@ -142,7 +142,7 @@ class TestCustOMICSInstantiation:
             device,
         )
         with pytest.raises(ModelNotFittedError):
-            model.predict(omics_df)
+            model.predict(mu_data)
 
 
 class TestCustOMICSFit:
@@ -194,7 +194,7 @@ class TestCustOMICSFit:
         device,
         mu_data,
     ):
-        CustOMICS(
+        model = CustOMICS(
             source_params,
             central_params,
             classif_params,
@@ -204,6 +204,7 @@ class TestCustOMICSFit:
         )
         with pytest.raises(DataValidationError, match="not found"):
             prepare_input(mdata=mu_data, label="nonexistent", event="OS", surv_time="OS.time")
+            model.fit(mu_data)
 
 
 class TestCustOMICSInference:
