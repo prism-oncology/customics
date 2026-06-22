@@ -35,7 +35,7 @@ class ModelWrapper(nn.Module):
         return self.model.source_predict(x, self.source)
 
 
-def processPhenotypeDataForSamples(
+def process_phenotype_data_for_samples(
     clinical_df: pd.DataFrame,
     sample_id: list[str],
     label_encoder,
@@ -59,7 +59,7 @@ def processPhenotypeDataForSamples(
     return clinical_df.loc[sample_id, :]
 
 
-def randomTrainingSample(expr: pd.DataFrame, sample_size: int) -> pd.DataFrame:
+def random_training_sample(expr: pd.DataFrame, sample_size: int) -> pd.DataFrame:
     """Draw a random subset of rows from an expression DataFrame.
 
     Parameters
@@ -77,7 +77,7 @@ def randomTrainingSample(expr: pd.DataFrame, sample_size: int) -> pd.DataFrame:
     return expr.sample(n=sample_size, axis=0)
 
 
-def splitExprandSample(
+def split_expr_and_sample(
     condition: pd.Series,
     sample_size: int,
     expr: pd.DataFrame,
@@ -101,7 +101,7 @@ def splitExprandSample(
     return expr[condition].sample(n=sample_size, axis=0)
 
 
-def addToTensor(expr_selection: pd.DataFrame, device: str) -> torch.Tensor:
+def add_to_tensor(expr_selection: pd.DataFrame, device: str) -> torch.Tensor:
     """Convert an expression DataFrame to a float32 tensor on `device`.
 
     Parameters
