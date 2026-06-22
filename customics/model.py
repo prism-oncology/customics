@@ -414,7 +414,7 @@ class CustOMICS(nn.Module):
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
 
-        lt_train = get_common_samples([*list(mdata.mod.values()), mdata])
+        lt_train = get_common_samples(mdata)
         self.baseline = self._compute_baseline(mdata.obs, lt_train, event, surv_time)
         train_loader = DataLoader(
             MultiOmicsDataset(mdata, lt_train, train_labels),
@@ -425,7 +425,7 @@ class CustOMICS(nn.Module):
 
         val_loader: DataLoader | None = None
         if omics_val is not None:
-            lt_val = get_common_samples([*list(omics_val.mod.values()), omics_val])
+            lt_val = get_common_samples(omics_val)
             val_labels = pd.Series(self.label_encoder.transform(omics_val.obs[label].values), index=omics_val.obs_names)
             val_loader = DataLoader(
                 MultiOmicsDataset(omics_val, lt_val, val_labels),
@@ -559,7 +559,7 @@ class CustOMICS(nn.Module):
             If called before `fit()`.
         """
         self._require_fitted()
-        lt_samples = get_common_samples(list(mdata.mod.values()))
+        lt_samples = get_common_samples(mdata)
         z = torch.tensor(self.get_latent_representation(mdata), dtype=torch.float32).to(self.device)
         self._set_eval_mode()
         with torch.no_grad():
@@ -637,7 +637,7 @@ class CustOMICS(nn.Module):
         encoded_labels = pd.Series(self.label_encoder.transform(mdata.obs[label].values), index=mdata.obs_names)
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
-        lt_samples = get_common_samples([*list(mdata.mod.values()), mdata])
+        lt_samples = get_common_samples(mdata)
         test_loader = DataLoader(
             MultiOmicsDataset(mdata, lt_samples, encoded_labels),
             batch_size=batch_size,

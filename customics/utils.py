@@ -85,19 +85,20 @@ def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None
 # ---------------------------------------------------------------------------
 
 
-def get_common_samples(adatas: list[AnnData]) -> list[str]:
-    """Return sample IDs present in every AnnData.
+def get_common_samples(mdata: MuData) -> list[str]:
+    """Return sample IDs present in every modality.
 
     Parameters
     ----------
-    adatas : list of AnnData
-        AnnData objects whose ``obs_names`` are sample IDs.
+    mdata : MuData
+        Multi-omics object whose modalities' ``obs_names`` are sample IDs.
 
     Returns
     -------
     list of str
         Sorted list of common sample IDs.
     """
+    adatas = list(mdata.mod.values())
     common = set(adatas[0].obs_names)
     for adata in adatas[1:]:
         common &= set(adata.obs_names)
