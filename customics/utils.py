@@ -11,6 +11,8 @@ from sklearn.model_selection import KFold, train_test_split
 
 from customics.exceptions import DataValidationError
 
+from ._constants import Keys
+
 sns.set_style("darkgrid")
 sns.set_palette("muted")
 sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
@@ -31,11 +33,9 @@ def toy_dataset() -> MuData:
     """
     PREFIX = "https://raw.githubusercontent.com/prism-oncology/customics/refs/heads/main/data"
 
-    omics_df = {
-        "protein": pd.read_csv(f"{PREFIX}/toy_data/protein.txt", sep="\t", index_col=0).T,
-        "gene_exp": pd.read_csv(f"{PREFIX}/toy_data/gene_exp.txt", sep="\t", index_col=0).T,
-        "methyl": pd.read_csv(f"{PREFIX}/toy_data/methyl.txt", sep="\t", index_col=0).T,
-    }
+    protein_df = pd.read_csv(f"{PREFIX}/toy_data/protein.txt", sep="\t", index_col=0).T
+    gene_exp_df = pd.read_csv(f"{PREFIX}/toy_data/gene_exp.txt", sep="\t", index_col=0).T
+    methyl_df = pd.read_csv(f"{PREFIX}/toy_data/methyl.txt", sep="\t", index_col=0).T
 
     clinical_df = pd.read_csv(f"{PREFIX}/toy_data/labels.txt", sep="\t", index_col=1, header=0)
 
@@ -44,9 +44,9 @@ def toy_dataset() -> MuData:
     clinical_df["OS.time"] = rng.integers(200, 3000, size=len(clinical_df))  # days
 
     mdata = MuData({
-        "rna": AnnData(omics_df["gene_exp"]),
-        "protein": AnnData(omics_df["protein"]),
-        "methyl": AnnData(omics_df["methyl"]),
+        "rna": AnnData(gene_exp_df),
+        "protein": AnnData(protein_df),
+        "methyl": AnnData(methyl_df),
     })
 
     mdata.obs = clinical_df
@@ -74,10 +74,10 @@ def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None
     DataValidationError
         If any of the given columns is missing from ``mdata.obs``.
     """
-    for key, column in {"label": label, "event": event, "surv_time": surv_time}.items():
+    for key, column in {Keys.LABEL: label, Keys.EVENT: event, Keys.SURV_TIME: surv_time}.items():
         if column not in mdata.obs:
             raise DataValidationError(f"Column '{column}' not found in mdata.obs")
-        mdata.uns[f"customics_{key}"] = column
+        mdata.uns[key] = column
 
 
 # ---------------------------------------------------------------------------
