@@ -401,11 +401,7 @@ class CustOMICS(nn.Module):
             If required columns are missing or samples don't overlap.
         """
 
-        self._validate_fit_inputs(mdata, [Keys.LABEL, Keys.EVENT, Keys.SURV_TIME])
-
-        label = mdata.uns[Keys.LABEL]
-        event = mdata.uns[Keys.EVENT]
-        surv_time = mdata.uns[Keys.SURV_TIME]
+        label, event, surv_time = self._validate_fit_inputs(mdata)
 
         self.label_encoder = LabelEncoder().fit(mdata.obs[label].values)
         train_labels = pd.Series(self.label_encoder.transform(mdata.obs[label].values), index=mdata.obs_names)
@@ -457,12 +453,8 @@ class CustOMICS(nn.Module):
         self._is_fitted = True
         return self
 
-    def _validate_fit_inputs(
-        self,
-        mdata: MuData,
-        clinical_params: list,
-    ) -> None:
-        if not all(key in mdata.uns for key in clinical_params):
+    def _validate_fit_inputs(self, mdata: MuData) -> tuple[str, str, str]:
+        if not all(key in mdata.uns for key in [Keys.LABEL, Keys.EVENT, Keys.SURV_TIME]):
             raise DataValidationError(
                 "Clinical parameters are not registered in mdata.uns. Please run `customics.prepare_input` first."
             )
@@ -471,6 +463,8 @@ class CustOMICS(nn.Module):
             overlap = set(adata.obs_names) & set(mdata.obs_names)
             if not overlap:
                 raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_data.")
+
+        return mdata.uns[Keys.LABEL], mdata.uns[Keys.EVENT], mdata.uns[Keys.SURV_TIME]
 
     def _compute_baseline(
         self,
