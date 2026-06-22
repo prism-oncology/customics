@@ -56,7 +56,7 @@ def clinical_df(sample_ids):
 
 
 @pytest.fixture(scope="session")
-def mu_data(rna_df, cnv_df, clinical_df):
+def mdata(rna_df, cnv_df, clinical_df):
     mdata = MuData({"rna": AnnData(rna_df), "cnv": AnnData(cnv_df)})
     mdata.obs = clinical_df
     return mdata
@@ -126,7 +126,7 @@ def device():
 
 
 @pytest.fixture(scope="session")
-def fitted_model(source_params, central_params, classif_params, surv_params, train_params, device, mu_data):
+def fitted_model(source_params, central_params, classif_params, surv_params, train_params, device, mdata):
     from customics import CustOMICS, prepare_input
 
     model = CustOMICS(
@@ -138,10 +138,10 @@ def fitted_model(source_params, central_params, classif_params, surv_params, tra
         device=device,
     )
 
-    prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+    prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
 
     model.fit(
-        mdata=mu_data,
+        mdata=mdata,
         n_epochs=3,
         batch_size=8,
         verbose=False,

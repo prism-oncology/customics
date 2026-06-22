@@ -13,7 +13,7 @@ def test_full_pipeline_classification(
     surv_params,
     train_params,
     device,
-    mu_data,
+    mdata,
 ):
     """Fit a model and evaluate classification — smoke test for the full pipeline."""
     model = CustOMICS(
@@ -24,9 +24,9 @@ def test_full_pipeline_classification(
         train_params=train_params,
         device=device,
     )
-    prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+    prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
     model.fit(
-        mdata=mu_data,
+        mdata=mdata,
         n_epochs=4,
         batch_size=8,
         verbose=False,
@@ -37,7 +37,7 @@ def test_full_pipeline_classification(
     assert all(isinstance(h[0], float) for h in model.history)
 
     metrics = model.evaluate(
-        mdata=mu_data,
+        mdata=mdata,
         task="classification",
         batch_size=8,
     )
@@ -53,7 +53,7 @@ def test_full_pipeline_survival(
     surv_params,
     train_params,
     device,
-    mu_data,
+    mdata,
 ):
     """Fit a model and evaluate survival — smoke test for the full pipeline."""
     model = CustOMICS(
@@ -64,14 +64,14 @@ def test_full_pipeline_survival(
         train_params=train_params,
         device=device,
     )
-    prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+    prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
     model.fit(
-        mdata=mu_data,
+        mdata=mdata,
         n_epochs=3,
         batch_size=8,
     )
     ci = model.evaluate(
-        mdata=mu_data,
+        mdata=mdata,
         task="survival",
         batch_size=8,
     )
@@ -86,7 +86,7 @@ def test_state_dict_save_load(
     surv_params,
     train_params,
     device,
-    mu_data,
+    mdata,
     tmp_path,
 ):
     """Model weights must be fully recoverable via state_dict (verifies nn.ModuleList fix)."""
@@ -98,9 +98,9 @@ def test_state_dict_save_load(
         train_params=train_params,
         device=device,
     )
-    prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+    prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
     model.fit(
-        mdata=mu_data,
+        mdata=mdata,
         n_epochs=2,
         batch_size=8,
     )
@@ -124,8 +124,8 @@ def test_state_dict_save_load(
     model2.one_hot_encoder = model.one_hot_encoder
     model2.baseline = model.baseline
 
-    preds1 = model.predict(mu_data)
-    preds2 = model2.predict(mu_data)
+    preds1 = model.predict(mdata)
+    preds2 = model2.predict(mdata)
     np.testing.assert_array_equal(preds1, preds2)
 
 
@@ -136,7 +136,7 @@ def test_fit_with_validation(
     surv_params,
     train_params,
     device,
-    mu_data,
+    mdata,
 ):
     """When omics_val is provided, history should contain (train, val) tuples."""
     model = CustOMICS(
@@ -147,10 +147,10 @@ def test_fit_with_validation(
         train_params=train_params,
         device=device,
     )
-    prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+    prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
     model.fit(
-        mdata=mu_data,
-        omics_val=mu_data,
+        mdata=mdata,
+        omics_val=mdata,
         n_epochs=2,
         batch_size=8,
     )

@@ -131,7 +131,7 @@ class TestCustOMICSInstantiation:
         surv_params,
         train_params,
         device,
-        mu_data,
+        mdata,
     ):
         model = CustOMICS(
             source_params,
@@ -142,12 +142,12 @@ class TestCustOMICSInstantiation:
             device,
         )
         with pytest.raises(ModelNotFittedError):
-            model.predict(mu_data)
+            model.predict(mdata)
 
 
 class TestCustOMICSFit:
     def test_fit_returns_self(
-        self, source_params, central_params, classif_params, surv_params, train_params, device, mu_data
+        self, source_params, central_params, classif_params, surv_params, train_params, device, mdata
     ):
         model = CustOMICS(
             source_params,
@@ -157,16 +157,16 @@ class TestCustOMICSFit:
             train_params,
             device,
         )
-        prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+        prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
         result = model.fit(
-            mu_data,
+            mdata,
             n_epochs=2,
             batch_size=8,
         )
         assert result is model
 
     def test_history_populated(
-        self, source_params, central_params, classif_params, surv_params, train_params, device, mu_data
+        self, source_params, central_params, classif_params, surv_params, train_params, device, mdata
     ):
         model = CustOMICS(
             source_params,
@@ -176,9 +176,9 @@ class TestCustOMICSFit:
             train_params,
             device,
         )
-        prepare_input(mdata=mu_data, label="label", event="OS", surv_time="OS.time")
+        prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
         model.fit(
-            mu_data,
+            mdata,
             n_epochs=3,
             batch_size=8,
         )
@@ -192,7 +192,7 @@ class TestCustOMICSFit:
         surv_params,
         train_params,
         device,
-        mu_data,
+        mdata,
     ):
         model = CustOMICS(
             source_params,
@@ -203,27 +203,27 @@ class TestCustOMICSFit:
             device,
         )
         with pytest.raises(DataValidationError, match="not found"):
-            prepare_input(mdata=mu_data, label="nonexistent", event="OS", surv_time="OS.time")
-            model.fit(mu_data)
+            prepare_input(mdata=mdata, label="nonexistent", event="OS", surv_time="OS.time")
+            model.fit(mdata)
 
 
 class TestCustOMICSInference:
-    def test_get_latent_shape(self, fitted_model, mu_data):
-        z = fitted_model.get_latent_representation(mu_data)
+    def test_get_latent_shape(self, fitted_model, mdata):
+        z = fitted_model.get_latent_representation(mdata)
         assert z.shape[0] == 20  # N_SAMPLES
 
-    def test_predict_shape(self, fitted_model, mu_data):
-        preds = fitted_model.predict(mu_data)
+    def test_predict_shape(self, fitted_model, mdata):
+        preds = fitted_model.predict(mdata)
         assert preds.shape == (20,)
 
-    def test_predict_classes_valid(self, fitted_model, mu_data):
-        preds = fitted_model.predict(mu_data)
+    def test_predict_classes_valid(self, fitted_model, mdata):
+        preds = fitted_model.predict(mdata)
         assert preds.min() >= 0
         assert preds.max() < 3  # N_CLASSES
 
-    def test_evaluate_classification_returns_dict(self, fitted_model, mu_data):
+    def test_evaluate_classification_returns_dict(self, fitted_model, mdata):
         result = fitted_model.evaluate(
-            mu_data,
+            mdata,
             task="classification",
             batch_size=8,
         )
@@ -231,18 +231,18 @@ class TestCustOMICSInference:
         assert "Accuracy" in result
         assert 0.0 <= result["Accuracy"] <= 1.0
 
-    def test_evaluate_survival_returns_float(self, fitted_model, mu_data):
+    def test_evaluate_survival_returns_float(self, fitted_model, mdata):
         result = fitted_model.evaluate(
-            mu_data,
+            mdata,
             task="survival",
             batch_size=8,
         )
         assert isinstance(result, float)
         assert 0.0 <= result <= 1.0
 
-    def test_invalid_task_raises(self, fitted_model, mu_data):
+    def test_invalid_task_raises(self, fitted_model, mdata):
         with pytest.raises(ValueError, match="task must be"):
             fitted_model.evaluate(
-                mu_data,
+                mdata,
                 task="regression",
             )
