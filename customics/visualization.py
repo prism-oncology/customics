@@ -133,7 +133,7 @@ def plot_survival_stratification(
     kmf_low = KaplanMeierFitter(label="low risk")
     kmf_high = KaplanMeierFitter(label="high risk")
     kmf_low.fit(mdata.obs.loc[low, surv_time], mdata.obs.loc[low, event])
-    kmf_high.fit(mdata.obs.obsal_df.loc[high, surv_time], mdata.obs.loc[high, event])
+    kmf_high.fit(mdata.obs.loc[high, surv_time], mdata.obs.loc[high, event])
 
     p_value = cox_log_rank(
         hazard_pred.reshape(-1),
