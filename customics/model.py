@@ -407,19 +407,17 @@ class CustOMICS(nn.Module):
         event = mdata.uns[Keys.EVENT]
         surv_time = mdata.uns[Keys.SURV_TIME]
 
-        encoded_clinical = mdata.obs.copy()
-
-        self.label_encoder = LabelEncoder().fit(encoded_clinical[label].values)
-        encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
+        self.label_encoder = LabelEncoder().fit(mdata.obs[label].values)
+        train_labels = pd.Series(self.label_encoder.transform(mdata.obs[label].values), index=mdata.obs_names)
         # Fit OHE on integer-encoded labels so it can transform integer y_true at eval time
-        self.one_hot_encoder = OneHotEncoder(sparse_output=False).fit(encoded_clinical[label].values.reshape(-1, 1))
+        self.one_hot_encoder = OneHotEncoder(sparse_output=False).fit(train_labels.values.reshape(-1, 1))
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
 
         lt_train = get_common_samples([*list(mdata.mod.values()), mdata])
         self.baseline = self._compute_baseline(mdata.obs, lt_train, event, surv_time)
         train_loader = DataLoader(
-            MultiOmicsDataset(mdata, encoded_clinical, lt_train, label, event, surv_time),
+            MultiOmicsDataset(mdata, lt_train, train_labels),
             batch_size=batch_size,
             shuffle=True,
             **loader_kw,
@@ -428,10 +426,9 @@ class CustOMICS(nn.Module):
         val_loader: DataLoader | None = None
         if omics_val is not None:
             lt_val = get_common_samples([*list(omics_val.mod.values()), omics_val])
-            val_clinical = omics_val.obs.copy()
-            val_clinical[label] = self.label_encoder.transform(val_clinical[label].values)
+            val_labels = pd.Series(self.label_encoder.transform(omics_val.obs[label].values), index=omics_val.obs_names)
             val_loader = DataLoader(
-                MultiOmicsDataset(omics_val, val_clinical, lt_val, label, event, surv_time),
+                MultiOmicsDataset(omics_val, lt_val, val_labels),
                 batch_size=batch_size,
                 shuffle=False,
                 **loader_kw,
@@ -635,17 +632,14 @@ class CustOMICS(nn.Module):
         if task not in ("classification", "survival"):
             raise ValueError(f"task must be 'classification' or 'survival', got '{task}'.")
 
-        label = mdata.uns["customics_label"]
-        event = mdata.uns["customics_event"]
-        surv_time = mdata.uns["customics_surv_time"]
+        label = mdata.uns[Keys.LABEL]
 
-        encoded_clinical = mdata.obs.copy()
-        encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
+        encoded_labels = pd.Series(self.label_encoder.transform(mdata.obs[label].values), index=mdata.obs_names)
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
         lt_samples = get_common_samples([*list(mdata.mod.values()), mdata])
         test_loader = DataLoader(
-            MultiOmicsDataset(mdata, encoded_clinical, lt_samples, label, event, surv_time),
+            MultiOmicsDataset(mdata, lt_samples, encoded_labels),
             batch_size=batch_size,
             shuffle=False,
             **loader_kw,
@@ -740,22 +734,22 @@ class CustOMICS(nn.Module):
 
         from customics.explain.shap import (
             ModelWrapper,
-            addToTensor,
-            processPhenotypeDataForSamples,
-            randomTrainingSample,
-            splitExprandSample,
+            add_to_tensor,
+            process_phenotype_data_for_samples,
+            random_training_sample,
+            split_expr_and_sample,
         )
 
         self._require_fitted()
         expr_df = mdata[source].to_df()
         sample_id = list(set(sample_id) & set(expr_df.index))
-        phenotype = processPhenotypeDataForSamples(mdata.obs, sample_id, self.label_encoder)
+        phenotype = process_phenotype_data_for_samples(mdata.obs, sample_id, self.label_encoder)
         condition = phenotype[label] == subtype
 
         expr_df = expr_df.loc[sample_id, :]
-        background = addToTensor(randomTrainingSample(expr_df, 10), device)
-        foreground_df = splitExprandSample(condition=condition, sample_size=10, expr=expr_df)
-        foreground = addToTensor(foreground_df, device)
+        background = add_to_tensor(random_training_sample(expr_df, 10), device)
+        foreground_df = split_expr_and_sample(condition=condition, sample_size=10, expr=expr_df)
+        foreground = add_to_tensor(foreground_df, device)
 
         class_idx = int(self.label_encoder.transform([subtype])[0])
         explainer = shap.DeepExplainer(ModelWrapper(self, source=source), background)
