@@ -8,10 +8,12 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from lifelines import KaplanMeierFitter
+from mudata import MuData
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
+from ._constants import Keys
 from .datasets import MultiOmicsDataset
 from .exceptions import ConfigurationError, DataValidationError, ModelNotFittedError
 from .loss import CoxLoss, classification_loss
@@ -367,12 +369,8 @@ class CustOMICS(nn.Module):
 
     def fit(
         self,
-        omics_train: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
-        label: str,
-        event: str,
-        surv_time: str,
-        omics_val: dict[str, pd.DataFrame] | None = None,
+        mdata: MuData,
+        omics_val: MuData | None = None,
         batch_size: int = 32,
         n_epochs: int = 30,
         verbose: bool = False,
@@ -381,16 +379,8 @@ class CustOMICS(nn.Module):
 
         Parameters
         ----------
-        omics_train:
-            Training omics data.  Each DataFrame must be indexed by sample ID.
-        clinical_df:
-            Clinical metadata indexed by sample ID.
-        label:
-            Column in `clinical_df` containing class labels.
-        event:
-            Column in `clinical_df` containing the event indicator (0/1).
-        surv_time:
-            Column in `clinical_df` containing survival time.
+        mdata : MuData
+            Multi-omics object whose ``obs`` holds the clinical annotations.
         omics_val:
             Validation omics data; same format as `omics_train`.
         batch_size:
@@ -410,20 +400,20 @@ class CustOMICS(nn.Module):
         DataValidationError
             If required columns are missing or samples don't overlap.
         """
-        self._validate_fit_inputs(omics_train, clinical_df, label, event, surv_time)
 
-        encoded_clinical = clinical_df.copy()
-        self.label_encoder = LabelEncoder().fit(encoded_clinical[label].values)
-        encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
+        label, event, surv_time = self._validate_fit_inputs(mdata)
+
+        self.label_encoder = LabelEncoder().fit(mdata.obs[label].values)
+        train_labels = pd.Series(self.label_encoder.transform(mdata.obs[label].values), index=mdata.obs_names)
         # Fit OHE on integer-encoded labels so it can transform integer y_true at eval time
-        self.one_hot_encoder = OneHotEncoder(sparse_output=False).fit(encoded_clinical[label].values.reshape(-1, 1))
+        self.one_hot_encoder = OneHotEncoder(sparse_output=False).fit(train_labels.values.reshape(-1, 1))
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
 
-        lt_train = get_common_samples([*list(omics_train.values()), clinical_df])
-        self.baseline = self._compute_baseline(clinical_df, lt_train, event, surv_time)
+        lt_train = get_common_samples(mdata)
+        self.baseline = self._compute_baseline(mdata.obs, lt_train, event, surv_time)
         train_loader = DataLoader(
-            MultiOmicsDataset(omics_train, encoded_clinical, lt_train, label, event, surv_time),
+            MultiOmicsDataset(mdata, lt_train, train_labels),
             batch_size=batch_size,
             shuffle=True,
             **loader_kw,
@@ -431,9 +421,10 @@ class CustOMICS(nn.Module):
 
         val_loader: DataLoader | None = None
         if omics_val is not None:
-            lt_val = get_common_samples([*list(omics_val.values()), clinical_df])
+            lt_val = get_common_samples(omics_val)
+            val_labels = pd.Series(self.label_encoder.transform(omics_val.obs[label].values), index=omics_val.obs_names)
             val_loader = DataLoader(
-                MultiOmicsDataset(omics_val, encoded_clinical, lt_val, label, event, surv_time),
+                MultiOmicsDataset(omics_val, lt_val, val_labels),
                 batch_size=batch_size,
                 shuffle=False,
                 **loader_kw,
@@ -462,23 +453,18 @@ class CustOMICS(nn.Module):
         self._is_fitted = True
         return self
 
-    def _validate_fit_inputs(
-        self,
-        omics_train: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
-        label: str,
-        event: str,
-        surv_time: str,
-    ) -> None:
-        for col in (label, event, surv_time):
-            if col not in clinical_df.columns:
-                raise DataValidationError(
-                    f"Column '{col}' not found in clinical_df. Available: {list(clinical_df.columns)}."
-                )
-        for source, df in omics_train.items():
-            overlap = set(df.index) & set(clinical_df.index)
+    def _validate_fit_inputs(self, mdata: MuData) -> tuple[str, str, str]:
+        if not all(key in mdata.uns for key in [Keys.LABEL, Keys.EVENT, Keys.SURV_TIME]):
+            raise DataValidationError(
+                "Clinical parameters are not registered in mdata.uns. Please run `customics.prepare_input` first."
+            )
+
+        for source, adata in mdata.mod.items():
+            overlap = set(adata.obs_names) & set(mdata.obs_names)
             if not overlap:
-                raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_df.")
+                raise DataValidationError(f"Source '{source}' shares no sample IDs with clinical_data.")
+
+        return mdata.uns[Keys.LABEL], mdata.uns[Keys.EVENT], mdata.uns[Keys.SURV_TIME]
 
     def _compute_baseline(
         self,
@@ -497,14 +483,14 @@ class CustOMICS(nn.Module):
 
     def get_latent_representation(
         self,
-        omics_df: dict[str, pd.DataFrame],
+        mdata: MuData,
     ) -> np.ndarray:
         """Compute the integrated central latent representation.
 
         Parameters
         ----------
-        omics_df:
-            Omics data for all sources (same keys as used in `fit`).
+        mdata : MuData
+            Multi-omics object with all sources (same keys as used in `fit`).
 
         Returns
         -------
@@ -518,18 +504,18 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        x = [torch.tensor(omics_df[s].values, dtype=torch.float32).to(self.device) for s in self.source_names]
+        x = [torch.tensor(mdata[mod].to_df().values, dtype=torch.float32).to(self.device) for mod in self.source_names]
         with torch.no_grad():
             z = self._get_central_representation(x)
         return z.cpu().numpy()
 
-    def predict(self, omics_df: dict[str, pd.DataFrame]) -> np.ndarray:
+    def predict(self, mdata: MuData) -> np.ndarray:
         """Predict class labels.
 
         Parameters
         ----------
-        omics_df : dict
-            Omics data matching the sources used in `fit`.
+        mdata : MuData
+            Multi-omics object matching the sources used in `fit`.
 
         Returns
         -------
@@ -543,18 +529,18 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        z = torch.tensor(self.get_latent_representation(omics_df), dtype=torch.float32).to(self.device)
+        z = torch.tensor(self.get_latent_representation(mdata), dtype=torch.float32).to(self.device)
         with torch.no_grad():
             logits = self.classifier(z)
         return torch.argmax(logits, dim=1).cpu().numpy()
 
-    def predict_survival(self, omics_df: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+    def predict_survival(self, mdata: MuData) -> dict[str, pd.DataFrame]:
         """Compute patient-level estimated survival functions.
 
         Parameters
         ----------
-        omics_df:
-            Omics data matching the sources used in `fit`.
+        mdata : MuData
+            Multi-omics object matching the sources used in `fit`.
 
         Returns
         -------
@@ -567,8 +553,8 @@ class CustOMICS(nn.Module):
             If called before `fit()`.
         """
         self._require_fitted()
-        lt_samples = get_common_samples(list(omics_df.values()))
-        z = torch.tensor(self.get_latent_representation(omics_df), dtype=torch.float32).to(self.device)
+        lt_samples = get_common_samples(mdata)
+        z = torch.tensor(self.get_latent_representation(mdata), dtype=torch.float32).to(self.device)
         self._set_eval_mode()
         with torch.no_grad():
             risk_scores = self.survival_predictor(z).cpu().numpy()
@@ -603,11 +589,7 @@ class CustOMICS(nn.Module):
 
     def evaluate(
         self,
-        omics_test: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
-        label: str,
-        event: str,
-        surv_time: str,
+        mdata: MuData,
         task: str,
         batch_size: int = 32,
         plot_roc: bool = False,
@@ -616,16 +598,8 @@ class CustOMICS(nn.Module):
 
         Parameters
         ----------
-        omics_test:
-            Test omics data.
-        clinical_df:
-            Clinical metadata.
-        label:
-            Class-label column.
-        event:
-            Event-indicator column.
-        surv_time:
-            Survival-time column.
+        mdata : MuData
+            Multi-omics object whose ``obs`` holds the clinical annotations.
         task:
             `'classification'` or `'survival'`.
         batch_size:
@@ -652,13 +626,14 @@ class CustOMICS(nn.Module):
         if task not in ("classification", "survival"):
             raise ValueError(f"task must be 'classification' or 'survival', got '{task}'.")
 
-        encoded_clinical = clinical_df.copy()
-        encoded_clinical[label] = self.label_encoder.transform(encoded_clinical[label].values)
+        label = mdata.uns[Keys.LABEL]
+
+        encoded_labels = pd.Series(self.label_encoder.transform(mdata.obs[label].values), index=mdata.obs_names)
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
-        lt_samples = get_common_samples([*list(omics_test.values()), clinical_df])
+        lt_samples = get_common_samples(mdata)
         test_loader = DataLoader(
-            MultiOmicsDataset(omics_test, encoded_clinical, lt_samples, label, event, surv_time),
+            MultiOmicsDataset(mdata, lt_samples, encoded_labels),
             batch_size=batch_size,
             shuffle=False,
             **loader_kw,
@@ -703,7 +678,7 @@ class CustOMICS(nn.Module):
                 y_pred_proba=y_proba,
                 filename="test",
                 n_classes=self.num_classes,
-                var_names=np.unique(clinical_df[label].values.tolist()).tolist(),
+                var_names=np.unique(mdata.obs[label].values.tolist()).tolist(),
             )
         return multi_classification_evaluation(y_true, y_pred, y_proba, ohe=self.one_hot_encoder)
 
@@ -714,8 +689,7 @@ class CustOMICS(nn.Module):
     def explain(
         self,
         sample_id: list[str],
-        omics_df: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
+        mdata: MuData,
         source: str,
         subtype: str,
         label: str = "PAM50",
@@ -731,10 +705,8 @@ class CustOMICS(nn.Module):
         ----------
         sample_id:
             Sample IDs to use as the SHAP background and foreground sets.
-        omics_df:
-            Multi-omics data.
-        clinical_df : pd.DataFrame
-            Clinical metadata.
+        mdata : MuData
+            Multi-omics object whose ``obs`` holds the clinical metadata.
         source:
             Omics source key to explain.
         subtype:
@@ -756,22 +728,22 @@ class CustOMICS(nn.Module):
 
         from customics.explain.shap import (
             ModelWrapper,
-            addToTensor,
-            processPhenotypeDataForSamples,
-            randomTrainingSample,
-            splitExprandSample,
+            add_to_tensor,
+            process_phenotype_data_for_samples,
+            random_training_sample,
+            split_expr_and_sample,
         )
 
         self._require_fitted()
-        expr_df = omics_df[source]
+        expr_df = mdata[source].to_df()
         sample_id = list(set(sample_id) & set(expr_df.index))
-        phenotype = processPhenotypeDataForSamples(clinical_df, sample_id, self.label_encoder)
+        phenotype = process_phenotype_data_for_samples(mdata.obs, sample_id, self.label_encoder)
         condition = phenotype[label] == subtype
 
         expr_df = expr_df.loc[sample_id, :]
-        background = addToTensor(randomTrainingSample(expr_df, 10), device)
-        foreground_df = splitExprandSample(condition=condition, sample_size=10, expr=expr_df)
-        foreground = addToTensor(foreground_df, device)
+        background = add_to_tensor(random_training_sample(expr_df, 10), device)
+        foreground_df = split_expr_and_sample(condition=condition, sample_size=10, expr=expr_df)
+        foreground = add_to_tensor(foreground_df, device)
 
         class_idx = int(self.label_encoder.transform([subtype])[0])
         explainer = shap.DeepExplainer(ModelWrapper(self, source=source), background)

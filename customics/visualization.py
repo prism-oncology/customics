@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from mudata import MuData
 from sklearn.manifold import TSNE
 
 if TYPE_CHECKING:
@@ -57,8 +58,7 @@ def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: 
 
 def plot_representation(
     model: CustOMICS,
-    omics_df: dict[str, pd.DataFrame],
-    clinical_df: pd.DataFrame,
+    mdata: MuData,
     label: str,
     filename: str,
     title: str,
@@ -70,10 +70,8 @@ def plot_representation(
     ----------
     model : CustOMICS
         A fitted model.
-    omics_df : dict
-        Multi-omics data.
-    clinical_df : pd.DataFrame
-        Clinical metadata containing `label`.
+    mdata : MuData
+            Multi-omics object.
     label : str
         Column in `clinical_df` to use for colouring.
     filename : str
@@ -85,16 +83,15 @@ def plot_representation(
     """
     from customics.utils import get_common_samples
 
-    lt_samples = get_common_samples([*list(omics_df.values()), clinical_df])
-    z = model.get_latent_representation(omics_df)
-    labels_arr = clinical_df.loc[lt_samples, label].values
+    lt_samples = get_common_samples([*list(mdata.mod.values()), mdata.obs])
+    z = model.get_latent_representation(mdata)
+    labels_arr = mdata.obs.loc[lt_samples, label].values
     save_plot_score(filename, z, labels_arr, title, show=show)
 
 
 def plot_survival_stratification(
     model: CustOMICS,
-    omics_df: dict[str, pd.DataFrame],
-    clinical_df: pd.DataFrame,
+    mdata: MuData,
     event: str,
     surv_time: str,
     plot_title: str = "",
@@ -107,10 +104,8 @@ def plot_survival_stratification(
     ----------
     model : CustOMICS
         A fitted model.
-    omics_df : dict
-        Multi-omics data.
-    clinical_df : pd.DataFrame
-        Clinical metadata.
+    mdata : MuData
+            Multi-omics object.
     event : str
         Event indicator column.
     surv_time : str
@@ -128,8 +123,8 @@ def plot_survival_stratification(
     from customics.metrics.survival import cox_log_rank
     from customics.utils import get_common_samples
 
-    lt_samples = get_common_samples([*list(omics_df.values()), clinical_df])
-    z = model.get_latent_representation(omics_df)
+    lt_samples = get_common_samples([*list(mdata.mod.values()), mdata.obs])
+    z = model.get_latent_representation(mdata)
     hazard_pred = model.survival_predictor(torch.tensor(z, dtype=torch.float32).to(model.device)).cpu().detach().numpy()
     median_hazard = np.mean(hazard_pred)
     high = [s for s, h in zip(lt_samples, hazard_pred) if h > median_hazard]
@@ -137,13 +132,13 @@ def plot_survival_stratification(
 
     kmf_low = KaplanMeierFitter(label="low risk")
     kmf_high = KaplanMeierFitter(label="high risk")
-    kmf_low.fit(clinical_df.loc[low, surv_time], clinical_df.loc[low, event])
-    kmf_high.fit(clinical_df.loc[high, surv_time], clinical_df.loc[high, event])
+    kmf_low.fit(mdata.obs.loc[low, surv_time], mdata.obs.loc[low, event])
+    kmf_high.fit(mdata.obs.loc[high, surv_time], mdata.obs.loc[high, event])
 
     p_value = cox_log_rank(
         hazard_pred.reshape(-1),
-        np.array(clinical_df.loc[lt_samples, event].values, dtype=float),
-        np.array(clinical_df.loc[lt_samples, surv_time].values, dtype=float),
+        np.array(mdata.obs.loc[lt_samples, event].values, dtype=float),
+        np.array(mdata.obs.loc[lt_samples, surv_time].values, dtype=float),
     )
     kmf_low.plot()
     kmf_high.plot()

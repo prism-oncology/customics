@@ -73,12 +73,15 @@ model = CustOMICS(
     train_params=train_params,
     device=device,
 )
-model.fit(
-    omics_train=omics_train,
-    clinical_df=clinical_df,
+# prepare inputs
+prepare_input(
+    mdata=mdata,
     label="PAM50",       # classification target column
     event="OS",          # survival event column (0/1)
     surv_time="OS.time", # survival time column
+)
+model.fit(
+    mdata=mdata,
     omics_val=omics_val, # optional validation set
     batch_size=32,
     n_epochs=30,
@@ -88,20 +91,18 @@ model.fit(
 # --- 4. Evaluate ---
 # Classification metrics (Accuracy, F1, AUC, …)
 metrics = model.evaluate(
-    omics_test, clinical_df,
-    label="PAM50", event="OS", surv_time="OS.time",
+    mdata,
     task="classification",
 )
 # Survival concordance index
 ci = model.evaluate(
-    omics_test, clinical_df,
-    label="PAM50", event="OS", surv_time="OS.time",
+    mdata,
     task="survival",
 )
 
 # --- 5. Visualise & explain ---
 model.plot_loss()
-model.plot_representation(omics_train, clinical_df, label="PAM50",
+model.plot_representation(mdata, label="PAM50",
                           filename="latent_space", title="t-SNE of latent space")
 model.stratify(omics_train, clinical_df, event="OS", surv_time="OS.time")
 model.explain(sample_ids, omics_train, clinical_df,

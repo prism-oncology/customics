@@ -5,7 +5,13 @@ import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from anndata import AnnData
+from mudata import MuData
 from sklearn.model_selection import KFold, train_test_split
+
+from customics.exceptions import DataValidationError
+
+from ._constants import Keys
 
 sns.set_style("darkgrid")
 sns.set_palette("muted")
@@ -16,22 +22,20 @@ sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
 # ---------------------------------------------------------------------------
 
 
-def toy_dataset() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
+def toy_dataset() -> MuData:
     """Load toy multi-omics dataset from GitHub.
 
     Returns
     -------
-    tuple of (dict, pd.DataFrame)
-        - dict: Multi-omics dictionary (source name → DataFrame).
-        - DataFrame: Clinical metadata with sample IDs as index.
+    MuData object:
+        - mdata.mod: Multi-omics dictionary (modality name → AnnData).
+        - mdata.obs: Clinical metadata with sample IDs as index.
     """
     PREFIX = "https://raw.githubusercontent.com/prism-oncology/customics/refs/heads/main/data"
 
-    omics_df = {
-        "protein": pd.read_csv(f"{PREFIX}/toy_data/protein.txt", sep="\t", index_col=0).T,
-        "gene_exp": pd.read_csv(f"{PREFIX}/toy_data/gene_exp.txt", sep="\t", index_col=0).T,
-        "methyl": pd.read_csv(f"{PREFIX}/toy_data/methyl.txt", sep="\t", index_col=0).T,
-    }
+    protein_df = pd.read_csv(f"{PREFIX}/toy_data/protein.txt", sep="\t", index_col=0).T
+    gene_exp_df = pd.read_csv(f"{PREFIX}/toy_data/gene_exp.txt", sep="\t", index_col=0).T
+    methyl_df = pd.read_csv(f"{PREFIX}/toy_data/methyl.txt", sep="\t", index_col=0).T
 
     clinical_df = pd.read_csv(f"{PREFIX}/toy_data/labels.txt", sep="\t", index_col=1, header=0)
 
@@ -39,7 +43,41 @@ def toy_dataset() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     clinical_df["OS"] = rng.integers(0, 2, size=len(clinical_df))  # 0 = censored, 1 = event
     clinical_df["OS.time"] = rng.integers(200, 3000, size=len(clinical_df))  # days
 
-    return omics_df, clinical_df
+    mdata = MuData({
+        "rna": AnnData(gene_exp_df),
+        "protein": AnnData(protein_df),
+        "methyl": AnnData(methyl_df),
+    })
+
+    mdata.obs = clinical_df
+
+    return mdata
+
+
+def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None:
+    """Validate clinical columns and register them in ``mdata.uns``.
+
+    Parameters
+    ----------
+    mdata : MuData
+        Multi-omics object whose ``obs`` holds the clinical annotations.
+    label : str
+        Name of the ``mdata.obs`` column used as the classification target.
+    event : str
+        Name of the ``mdata.obs`` column holding the survival event indicator
+        (1 = event, 0 = censored).
+    surv_time : str
+        Name of the ``mdata.obs`` column holding the survival time.
+
+    Raises
+    ------
+    DataValidationError
+        If any of the given columns is missing from ``mdata.obs``.
+    """
+    for key, column in {Keys.LABEL: label, Keys.EVENT: event, Keys.SURV_TIME: surv_time}.items():
+        if column not in mdata.obs:
+            raise DataValidationError(f"Column '{column}' not found in mdata.obs")
+        mdata.uns[key] = column
 
 
 # ---------------------------------------------------------------------------
@@ -47,22 +85,23 @@ def toy_dataset() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
 # ---------------------------------------------------------------------------
 
 
-def get_common_samples(dfs: list[pd.DataFrame]) -> list[str]:
-    """Return sample IDs present in every DataFrame.
+def get_common_samples(mdata: MuData) -> list[str]:
+    """Return sample IDs present in every modality.
 
     Parameters
     ----------
-    dfs : list of pd.DataFrame
-        DataFrames whose indices are sample IDs.
+    mdata : MuData
+        Multi-omics object whose modalities' ``obs_names`` are sample IDs.
 
     Returns
     -------
     list of str
         Sorted list of common sample IDs.
     """
-    common = set(dfs[0].index)
-    for df in dfs[1:]:
-        common &= set(df.index)
+    adatas = list(mdata.mod.values())
+    common = set(adatas[0].obs_names)
+    for adata in adatas[1:]:
+        common &= set(adata.obs_names)
     return sorted(common)
 
 

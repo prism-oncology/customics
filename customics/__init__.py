@@ -3,7 +3,7 @@ import logging
 
 from ._logging import configure_logger
 from . import datasets, metrics
-from .utils import get_common_samples, get_sub_omics_df, toy_dataset
+from .utils import get_common_samples, get_sub_omics_df, toy_dataset, prepare_input
 from .model import CustOMICS
 
 __version__ = importlib.metadata.version("customics")
