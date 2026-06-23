@@ -212,6 +212,26 @@ class TestCustOMICSInference:
         z = fitted_model.get_latent_representation(mdata)
         assert z.shape[0] == 20  # N_SAMPLES
 
+    def test_get_latent_invariant_to_modality_order(self, fitted_model, rna_df, cnv_df, clinical_df):
+        # Rows are realigned to get_common_samples, so shuffling one modality's
+        # row order must not change the latent representation.
+        import numpy as np
+        from anndata import AnnData
+        from mudata import MuData
+
+        base = MuData({"rna": AnnData(rna_df), "cnv": AnnData(cnv_df)})
+        base.obs = clinical_df
+        prepare_input(mdata=base, label="label", event="OS", surv_time="OS.time")
+
+        shuffled = MuData({"rna": AnnData(rna_df.iloc[::-1]), "cnv": AnnData(cnv_df)})
+        shuffled.obs = clinical_df
+        prepare_input(mdata=shuffled, label="label", event="OS", surv_time="OS.time")
+
+        np.testing.assert_allclose(
+            fitted_model.get_latent_representation(base),
+            fitted_model.get_latent_representation(shuffled),
+        )
+
     def test_predict_shape(self, fitted_model, mdata):
         preds = fitted_model.predict(mdata)
         assert preds.shape == (20,)

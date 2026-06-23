@@ -210,7 +210,7 @@ print(f"First 5 sample IDs: {lt_samples[:5]}")
 ## 2. Splitting the Data
 
 We split the full cohort into **train / validation / test** sets.
-`get_sub_omics_df` applies the same sample selection to all sources simultaneously,
+`get_sub_mudata` applies the same sample selection to all sources simultaneously,
 keeping every dictionary in sync.
 
 
@@ -231,10 +231,10 @@ print(f"Test  : {len(samples_test):>3d} samples")
 
 
 ```python
-# get_sub_omics_df returns a new dict where each DataFrame is filtered to the given samples.
-omics_train = customics.get_sub_omics_df(omics_df, samples_train)
-omics_val = customics.get_sub_omics_df(omics_df, samples_val)
-omics_test = customics.get_sub_omics_df(omics_df, samples_test)
+# get_sub_mudata returns a new dict where each DataFrame is filtered to the given samples.
+omics_train = customics.get_sub_mudata(omics_df, samples_train)
+omics_val = customics.get_sub_mudata(omics_df, samples_val)
+omics_test = customics.get_sub_mudata(omics_df, samples_test)
 
 # Record input dimensions per source — used to configure the autoencoders below.
 x_dim = {source: df.shape[1] for source, df in omics_df.items()}

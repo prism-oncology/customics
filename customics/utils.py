@@ -105,22 +105,31 @@ def get_common_samples(mdata: MuData) -> list[str]:
     return sorted(common)
 
 
-def get_sub_omics_df(omics_df: dict[str, pd.DataFrame], lt_samples: list[str]) -> dict[str, pd.DataFrame]:
-    """Subset every omics DataFrame to the given samples.
+def get_sub_mudata(mdata: MuData, lt_samples: list[str]) -> MuData:
+    """Subset a MuData to the given samples across every modality.
+
+    Each modality is restricted to the requested samples that it actually
+    contains (their intersection), and the clinical `obs`/`uns` are carried
+    over so the result is ready to pass to :meth:`CustOMICS.fit`.
 
     Parameters
     ----------
-    omics_df : dict
-        Multi-omics dictionary (source name → DataFrame).
+    mdata : MuData
+        Multi-omics object to subset.
     lt_samples : list of str
         Sample IDs to keep.
 
     Returns
     -------
-    dict
-        Same structure as `omics_df` but rows restricted to `lt_samples`.
+    MuData
+        A new MuData containing only ``lt_samples``.
     """
-    return {key: df.loc[lt_samples, :] for key, df in omics_df.items()}
+    sub = MuData({
+        name: adata[[s for s in lt_samples if s in adata.obs_names]].copy() for name, adata in mdata.mod.items()
+    })
+    sub.obs = mdata.obs.loc[[s for s in lt_samples if s in mdata.obs_names]]
+    sub.uns = dict(mdata.uns)
+    return sub
 
 
 # ---------------------------------------------------------------------------

@@ -495,7 +495,8 @@ class CustOMICS(nn.Module):
         Returns
         -------
         np.ndarray
-            Latent matrix, shape `(n_samples, central_latent_dim)`.
+            Latent matrix, shape `(n_samples, central_latent_dim)`. Rows
+            correspond to `get_common_samples(mdata)`, in that order.
 
         Raises
         ------
@@ -504,7 +505,11 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        x = [torch.tensor(mdata[mod].to_df().values, dtype=torch.float32).to(self.device) for mod in self.source_names]
+        lt_samples = get_common_samples(mdata)
+        x = [
+            torch.tensor(np.asarray(mdata[mod][lt_samples].X), dtype=torch.float32).to(self.device)
+            for mod in self.source_names
+        ]
         with torch.no_grad():
             z = self._get_central_representation(x)
         return z.cpu().numpy()

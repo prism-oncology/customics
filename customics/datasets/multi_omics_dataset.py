@@ -30,7 +30,7 @@ class MultiOmicsDataset(Dataset):
 
     Examples
     --------
-    >>> dataset = MultiOmicsDataset(mdata, samples, labels, "OS", "OS.time")
+    >>> dataset = MultiOmicsDataset(mdata, samples, labels)
     >>> omics_tensors, label, time, event = dataset[0]
     """
 
@@ -41,7 +41,6 @@ class MultiOmicsDataset(Dataset):
         encoded_labels: pd.Series | None,
     ) -> None:
         self.mdata = mdata
-        self.clinical = mdata.obs
         self.lt_samples = lt_samples
         self.encoded_labels = encoded_labels
 
@@ -52,8 +51,8 @@ class MultiOmicsDataset(Dataset):
         sample = self.lt_samples[index]
         omics_data = [torch.tensor(adata[sample].X.astype(np.float32).ravel()) for adata in self.mdata.mod.values()]
         lbl = self.encoded_labels.loc[sample] if self.encoded_labels is not None else 0
-        os_time = int(self.clinical.loc[sample, self.mdata.uns[Keys.SURV_TIME]])
-        os_event = int(self.clinical.loc[sample, self.mdata.uns[Keys.SURV_TIME]])
+        os_time = int(self.mdata.obs.loc[sample, self.mdata.uns[Keys.SURV_TIME]])
+        os_event = int(self.mdata.obs.loc[sample, self.mdata.uns[Keys.EVENT]])
         return omics_data, lbl, os_time, os_event
 
     def get_samples(self) -> list[str]:
