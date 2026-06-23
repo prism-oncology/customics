@@ -73,7 +73,7 @@ def plot_representation(
     mdata : MuData
             Multi-omics object.
     label : str
-        Column in `clinical_df` to use for colouring.
+        Column in `mdata.obs` to use for colouring.
     filename : str
         Output path (without extension).
     title : str
@@ -83,7 +83,7 @@ def plot_representation(
     """
     from customics.utils import get_common_samples
 
-    lt_samples = get_common_samples([*list(mdata.mod.values()), mdata.obs])
+    lt_samples = get_common_samples(mdata)
     z = model.get_latent_representation(mdata)
     labels_arr = mdata.obs.loc[lt_samples, label].values
     save_plot_score(filename, z, labels_arr, title, show=show)
@@ -123,7 +123,7 @@ def plot_survival_stratification(
     from customics.metrics.survival import cox_log_rank
     from customics.utils import get_common_samples
 
-    lt_samples = get_common_samples([*list(mdata.mod.values()), mdata.obs])
+    lt_samples = get_common_samples(mdata)
     z = model.get_latent_representation(mdata)
     hazard_pred = model.survival_predictor(torch.tensor(z, dtype=torch.float32).to(model.device)).cpu().detach().numpy()
     median_hazard = np.mean(hazard_pred)

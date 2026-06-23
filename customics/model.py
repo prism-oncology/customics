@@ -504,7 +504,7 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        x = [torch.tensor(mdata[mod].to_df().values, dtype=torch.float32).to(self.device) for mod in self.source_names]
+        x = [torch.tensor(mdata[mod].X, dtype=torch.float32).to(self.device) for mod in self.source_names]
         with torch.no_grad():
             z = self._get_central_representation(x)
         return z.cpu().numpy()
