@@ -105,11 +105,11 @@ def get_common_samples(mdata: MuData) -> list[str]:
     return sorted(common)
 
 
-def get_sub_omics_df(mdata: MuData, lt_samples: list[str]) -> MuData:
+def get_sub_mudata(mdata: MuData, lt_samples: list[str]) -> MuData:
     """Subset a MuData to the given samples across every modality.
 
     Each modality is restricted to the requested samples that it actually
-    contains (their intersection), and the clinical ``obs``/``uns`` are carried
+    contains (their intersection), and the clinical `obs`/`uns` are carried
     over so the result is ready to pass to :meth:`CustOMICS.fit`.
 
     Parameters
