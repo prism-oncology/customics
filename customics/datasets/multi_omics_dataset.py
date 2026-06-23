@@ -52,7 +52,7 @@ class MultiOmicsDataset(Dataset):
         omics_data = [torch.tensor(adata[sample].X.astype(np.float32).ravel()) for adata in self.mdata.mod.values()]
         lbl = self.encoded_labels.loc[sample] if self.encoded_labels is not None else 0
         os_time = int(self.mdata.obs.loc[sample, self.mdata.uns[Keys.SURV_TIME]])
-        os_event = int(self.mdata.obs.loc[sample, self.mdata.uns[Keys.SURV_TIME]])
+        os_event = int(self.mdata.obs.loc[sample, self.mdata.uns[Keys.EVENT]])
         return omics_data, lbl, os_time, os_event
 
     def get_samples(self) -> list[str]:
