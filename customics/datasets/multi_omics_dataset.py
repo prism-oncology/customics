@@ -14,16 +14,16 @@ class MultiOmicsDataset(Dataset):
 
     Each sample returns a list of per-source tensors together with its class
     label, survival time, and event indicator.  Survival metadata is read
-    directly from ``mdata.obs``; class labels are taken from the pre-encoded
+    directly from `mdata.obs`; class labels are taken from the pre-encoded
     `labels` Series so the dataset stays agnostic to label encoding.
 
     Parameters
     ----------
     mdata : MuData
-        Multi-omics object whose ``obs`` holds the clinical annotations.
-    lt_samples : list of str
+        Multi-omics object whose `obs` holds the clinical annotations.
+    shared_samples : list of str
         Ordered list of sample IDs to include (must be present in every
-        omics modality and in ``mdata.obs``).
+        omics modality and in `mdata.obs`).
     labels : pd.Series or None
         Encoded class labels indexed by sample ID.  Pass `None` to disable
         label loading (returns 0).
@@ -37,24 +37,24 @@ class MultiOmicsDataset(Dataset):
     def __init__(
         self,
         mdata: MuData,
-        lt_samples: list[str],
+        shared_samples: list[str],
         encoded_labels: pd.Series | None,
     ) -> None:
         self.mdata = mdata
-        self.lt_samples = lt_samples
+        self.shared_samples = shared_samples
         self.encoded_labels = encoded_labels
 
     def __len__(self) -> int:
-        return len(self.lt_samples)
+        return len(self.shared_samples)
 
     def __getitem__(self, index: int) -> tuple[list[torch.Tensor], int, int, int]:
-        sample = self.lt_samples[index]
+        sample = self.shared_samples[index]
         omics_data = [torch.tensor(adata[sample].X.astype(np.float32).ravel()) for adata in self.mdata.mod.values()]
-        lbl = self.encoded_labels.loc[sample] if self.encoded_labels is not None else 0
+        label = self.encoded_labels.loc[sample] if self.encoded_labels is not None else 0
         os_time = int(self.mdata.obs.loc[sample, self.mdata.uns[Keys.SURV_TIME]])
         os_event = int(self.mdata.obs.loc[sample, self.mdata.uns[Keys.EVENT]])
-        return omics_data, lbl, os_time, os_event
+        return omics_data, label, os_time, os_event
 
     def get_samples(self) -> list[str]:
         """Return the list of sample IDs in dataset order."""
-        return self.lt_samples
+        return self.shared_samples

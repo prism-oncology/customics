@@ -43,8 +43,8 @@ class TestMultiOmicsDataset:
 
     def test_no_label(self, prepared_mdata, sample_ids):
         ds = MultiOmicsDataset(prepared_mdata, sample_ids, None)
-        _, lbl, _, _ = ds[0]
-        assert lbl == 0
+        _, label, _, _ = ds[0]
+        assert label == 0
 
     def test_get_samples(self, prepared_mdata, clinical_df, sample_ids):
         ds = MultiOmicsDataset(prepared_mdata, sample_ids, clinical_df["label"])

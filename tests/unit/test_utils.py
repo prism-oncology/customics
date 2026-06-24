@@ -1,9 +1,9 @@
 """Unit tests for customics.utils."""
 
-from customics import get_common_samples, get_sub_mudata, prepare_input
+from customics import get_shared_samples, get_sub_mudata, prepare_input
 
 
-class TestGetSubOmicsDf:
+class TestGetSubMuData:
     def test_subsets_all_modalities(self, mdata, sample_ids):
         keep = sample_ids[:5]
         sub = get_sub_mudata(mdata, keep)
@@ -21,7 +21,7 @@ class TestGetSubOmicsDf:
     def test_result_is_usable_for_common_samples(self, mdata, sample_ids):
         keep = sample_ids[:5]
         sub = get_sub_mudata(mdata, keep)
-        assert get_common_samples(sub) == sorted(keep)
+        assert get_shared_samples(sub) == sorted(keep)
 
     def test_ignores_unknown_samples(self, mdata, sample_ids):
         sub = get_sub_mudata(mdata, [*sample_ids[:3], "NOT_A_SAMPLE"])

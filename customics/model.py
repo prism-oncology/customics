@@ -20,7 +20,7 @@ from .loss import CoxLoss, classification_loss
 from .metrics import CIndex_lifeline, multi_classification_evaluation, plot_roc_multiclass
 from .modules import VAE, AutoEncoder, Decoder, Encoder, ProbabilisticDecoder, ProbabilisticEncoder
 from .tasks import MultiClassifier, SurvivalNet
-from .utils import get_common_samples
+from .utils import get_shared_samples
 
 logger = logging.getLogger(__name__)
 
@@ -260,20 +260,20 @@ class CustOMICS(nn.Module):
 
         Returns
         -------
-        lt_hat:
+        reconstructions:
             Per-source reconstructions.
-        lt_rep:
+        representations:
             Per-source latent vectors.
         mean:
             Central VAE posterior mean, shape `(batch, central_latent_dim)`.
         """
-        lt_hat, lt_rep = [], []
+        reconstructions, representations = [], []
         for xi, ae in zip(x, self.autoencoders):
             hat, rep = ae(xi)
-            lt_hat.append(hat)
-            lt_rep.append(rep)
-        mean, _ = self.central_layer.encoder(torch.cat(lt_rep, dim=1))
-        return lt_hat, lt_rep, mean
+            reconstructions.append(hat)
+            representations.append(rep)
+        mean, _ = self.central_layer.encoder(torch.cat(representations, dim=1))
+        return reconstructions, representations, mean
 
     # ------------------------------------------------------------------ #
     # Internal helpers for training
@@ -286,25 +286,25 @@ class CustOMICS(nn.Module):
         central VAE mean.  Both are used as input to the task heads during
         training.
         """
-        lt_rep: list[torch.Tensor] = []
-        recon_loss = torch.tensor(0.0, device=self.device)
+        representations: list[torch.Tensor] = []
+        reconstruction_loss = torch.tensor(0.0, device=self.device)
         for xi, ae in zip(x, self.autoencoders):
             _, rep = ae(xi)
-            lt_rep.append(rep)
-            recon_loss = recon_loss + ae.loss(xi, self.beta)
+            representations.append(rep)
+            reconstruction_loss = reconstruction_loss + ae.loss(xi, self.beta)
 
         if self.phase == 1:
-            return lt_rep, recon_loss
+            return representations, reconstruction_loss
 
-        central_concat = torch.cat(lt_rep, dim=1)
-        recon_loss = recon_loss + self.central_layer.loss(central_concat, self.beta)
+        central_concat = torch.cat(representations, dim=1)
+        reconstruction_loss = reconstruction_loss + self.central_layer.loss(central_concat, self.beta)
         mean, _ = self.central_layer.encoder(central_concat)
-        return mean, recon_loss
+        return mean, reconstruction_loss
 
     def _get_central_representation(self, x: list[torch.Tensor]) -> torch.Tensor:
         """Always return the central VAE mean (used for inference)."""
-        lt_rep = [ae(xi)[1] for xi, ae in zip(x, self.autoencoders)]
-        mean, _ = self.central_layer.encoder(torch.cat(lt_rep, dim=1))
+        representations = [ae(xi)[1] for xi, ae in zip(x, self.autoencoders)]
+        mean, _ = self.central_layer.encoder(torch.cat(representations, dim=1))
         return mean
 
     def _set_train_mode(self) -> None:
@@ -329,7 +329,7 @@ class CustOMICS(nn.Module):
         x = [xi.to(self.device) for xi in x]
         self.optimizer.zero_grad()
 
-        z_or_reps, recon_loss = self._compute_training_loss(x)
+        z_or_reps, reconstruction_loss = self._compute_training_loss(x)
 
         if self.phase == 1:
             # Apply task heads to every per-source representation separately
@@ -345,7 +345,7 @@ class CustOMICS(nn.Module):
                 os_time, os_event, self.survival_predictor(z), self.device
             ) + self.lambda_classif * classification_loss("CE", self.classifier(z), labels)
 
-        return recon_loss + task_loss
+        return reconstruction_loss + task_loss
 
     def _run_epoch(self, loader: DataLoader, training: bool) -> float:
         total, n = 0.0, 0
@@ -380,7 +380,7 @@ class CustOMICS(nn.Module):
         Parameters
         ----------
         mdata : MuData
-            Multi-omics object whose ``obs`` holds the clinical annotations.
+            Multi-omics object whose `obs` holds the clinical annotations.
         omics_val:
             Validation omics data; same format as `omics_train`.
         batch_size:
@@ -410,10 +410,10 @@ class CustOMICS(nn.Module):
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
 
-        lt_train = get_common_samples(mdata)
-        self.baseline = self._compute_baseline(mdata.obs, lt_train, event, surv_time)
+        shared_samples_train = get_shared_samples(mdata)
+        self.baseline = self._compute_baseline(mdata.obs, shared_samples_train, event, surv_time)
         train_loader = DataLoader(
-            MultiOmicsDataset(mdata, lt_train, train_labels),
+            MultiOmicsDataset(mdata, shared_samples_train, train_labels),
             batch_size=batch_size,
             shuffle=True,
             **loader_kw,
@@ -421,10 +421,10 @@ class CustOMICS(nn.Module):
 
         val_loader: DataLoader | None = None
         if omics_val is not None:
-            lt_val = get_common_samples(omics_val)
+            shared_samples_val = get_shared_samples(omics_val)
             val_labels = pd.Series(self.label_encoder.transform(omics_val.obs[label].values), index=omics_val.obs_names)
             val_loader = DataLoader(
-                MultiOmicsDataset(omics_val, lt_val, val_labels),
+                MultiOmicsDataset(omics_val, shared_samples_val, val_labels),
                 batch_size=batch_size,
                 shuffle=False,
                 **loader_kw,
@@ -469,12 +469,12 @@ class CustOMICS(nn.Module):
     def _compute_baseline(
         self,
         clinical_df: pd.DataFrame,
-        lt_samples: list[str],
+        shared_samples: list[str],
         event: str,
         surv_time: str,
     ):
         kmf = KaplanMeierFitter()
-        kmf.fit(clinical_df.loc[lt_samples, surv_time], clinical_df.loc[lt_samples, event])
+        kmf.fit(clinical_df.loc[shared_samples, surv_time], clinical_df.loc[shared_samples, event])
         return kmf.survival_function_
 
     # ------------------------------------------------------------------ #
@@ -496,7 +496,7 @@ class CustOMICS(nn.Module):
         -------
         np.ndarray
             Latent matrix, shape `(n_samples, central_latent_dim)`. Rows
-            correspond to `get_common_samples(mdata)`, in that order.
+            correspond to `get_shared_samples(mdata)`, in that order.
 
         Raises
         ------
@@ -505,9 +505,9 @@ class CustOMICS(nn.Module):
         """
         self._require_fitted()
         self._set_eval_mode()
-        lt_samples = get_common_samples(mdata)
+        shared_samples = get_shared_samples(mdata)
         x = [
-            torch.tensor(np.asarray(mdata[mod][lt_samples].X), dtype=torch.float32).to(self.device)
+            torch.tensor(np.asarray(mdata[mod][shared_samples].X), dtype=torch.float32).to(self.device)
             for mod in self.source_names
         ]
         with torch.no_grad():
@@ -558,12 +558,12 @@ class CustOMICS(nn.Module):
             If called before `fit()`.
         """
         self._require_fitted()
-        lt_samples = get_common_samples(mdata)
+        shared_samples = get_shared_samples(mdata)
         z = torch.tensor(self.get_latent_representation(mdata), dtype=torch.float32).to(self.device)
         self._set_eval_mode()
         with torch.no_grad():
             risk_scores = self.survival_predictor(z).cpu().numpy()
-        return {s: self.baseline * np.exp(r[0]) for s, r in zip(lt_samples, risk_scores)}
+        return {s: self.baseline * np.exp(r[0]) for s, r in zip(shared_samples, risk_scores)}
 
     def source_predict(self, x: torch.Tensor, source: str) -> torch.Tensor:
         """Predict class logits from a single-source input tensor.
@@ -604,7 +604,7 @@ class CustOMICS(nn.Module):
         Parameters
         ----------
         mdata : MuData
-            Multi-omics object whose ``obs`` holds the clinical annotations.
+            Multi-omics object whose `obs` holds the clinical annotations.
         task:
             `'classification'` or `'survival'`.
         batch_size:
@@ -636,9 +636,9 @@ class CustOMICS(nn.Module):
         encoded_labels = pd.Series(self.label_encoder.transform(mdata.obs[label].values), index=mdata.obs_names)
 
         loader_kw: dict = {"num_workers": 2, "pin_memory": True} if self.device.type == "cuda" else {}
-        lt_samples = get_common_samples(mdata)
+        shared_samples = get_shared_samples(mdata)
         test_loader = DataLoader(
-            MultiOmicsDataset(mdata, lt_samples, encoded_labels),
+            MultiOmicsDataset(mdata, shared_samples, encoded_labels),
             batch_size=batch_size,
             shuffle=False,
             **loader_kw,
@@ -711,7 +711,7 @@ class CustOMICS(nn.Module):
         sample_id:
             Sample IDs to use as the SHAP background and foreground sets.
         mdata : MuData
-            Multi-omics object whose ``obs`` holds the clinical metadata.
+            Multi-omics object whose `obs` holds the clinical metadata.
         source:
             Omics source key to explain.
         subtype:

@@ -55,24 +55,24 @@ def toy_dataset() -> MuData:
 
 
 def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None:
-    """Validate clinical columns and register them in ``mdata.uns``.
+    """Validate clinical columns and register them in `mdata.uns`.
 
     Parameters
     ----------
     mdata : MuData
-        Multi-omics object whose ``obs`` holds the clinical annotations.
+        Multi-omics object whose `obs` holds the clinical annotations.
     label : str
-        Name of the ``mdata.obs`` column used as the classification target.
+        Name of the `mdata.obs` column used as the classification target.
     event : str
-        Name of the ``mdata.obs`` column holding the survival event indicator
+        Name of the `mdata.obs` column holding the survival event indicator
         (1 = event, 0 = censored).
     surv_time : str
-        Name of the ``mdata.obs`` column holding the survival time.
+        Name of the `mdata.obs` column holding the survival time.
 
     Raises
     ------
     DataValidationError
-        If any of the given columns is missing from ``mdata.obs``.
+        If any of the given columns is missing from `mdata.obs`.
     """
     for key, column in {Keys.LABEL: label, Keys.EVENT: event, Keys.SURV_TIME: surv_time}.items():
         if column not in mdata.obs:
@@ -85,13 +85,13 @@ def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None
 # ---------------------------------------------------------------------------
 
 
-def get_common_samples(mdata: MuData) -> list[str]:
+def get_shared_samples(mdata: MuData) -> list[str]:
     """Return sample IDs present in every modality.
 
     Parameters
     ----------
     mdata : MuData
-        Multi-omics object whose modalities' ``obs_names`` are sample IDs.
+        Multi-omics object whose modalities' `obs_names` are sample IDs.
 
     Returns
     -------
@@ -105,7 +105,7 @@ def get_common_samples(mdata: MuData) -> list[str]:
     return sorted(common)
 
 
-def get_sub_mudata(mdata: MuData, lt_samples: list[str]) -> MuData:
+def get_sub_mudata(mdata: MuData, shared_samples: list[str]) -> MuData:
     """Subset a MuData to the given samples across every modality.
 
     Each modality is restricted to the requested samples that it actually
@@ -116,18 +116,18 @@ def get_sub_mudata(mdata: MuData, lt_samples: list[str]) -> MuData:
     ----------
     mdata : MuData
         Multi-omics object to subset.
-    lt_samples : list of str
+    shared_samples : list of str
         Sample IDs to keep.
 
     Returns
     -------
     MuData
-        A new MuData containing only ``lt_samples``.
+        A new MuData containing only `shared_samples`.
     """
     sub = MuData({
-        name: adata[[s for s in lt_samples if s in adata.obs_names]].copy() for name, adata in mdata.mod.items()
+        name: adata[[s for s in shared_samples if s in adata.obs_names]].copy() for name, adata in mdata.mod.items()
     })
-    sub.obs = mdata.obs.loc[[s for s in lt_samples if s in mdata.obs_names]]
+    sub.obs = mdata.obs.loc[[s for s in shared_samples if s in mdata.obs_names]]
     sub.uns = dict(mdata.uns)
     return sub
 
@@ -137,12 +137,12 @@ def get_sub_mudata(mdata: MuData, lt_samples: list[str]) -> MuData:
 # ---------------------------------------------------------------------------
 
 
-def save_splits(lt_samples: list[str], cohort: str, split_dir: str = "splits") -> None:
+def save_splits(shared_samples: list[str], cohort: str, split_dir: str = "splits") -> None:
     """Compute 5-fold cross-validation splits and persist them to disk.
 
     Parameters
     ----------
-    lt_samples : list of str
+    shared_samples : list of str
         All sample IDs.
     cohort : str
         Cohort name used to create a subdirectory under `split_dir`.
@@ -152,7 +152,7 @@ def save_splits(lt_samples: list[str], cohort: str, split_dir: str = "splits") -
     kf = KFold(n_splits=5)
     out_dir = os.path.join(split_dir, cohort)
     os.makedirs(out_dir, exist_ok=True)
-    for i, (train_idx, test_idx) in enumerate(kf.split(lt_samples), start=1):
+    for i, (train_idx, test_idx) in enumerate(kf.split(shared_samples), start=1):
         train_idx, val_idx = train_test_split(train_idx, test_size=0.15)
         for name, indices in [
             ("train", train_idx),
@@ -161,7 +161,7 @@ def save_splits(lt_samples: list[str], cohort: str, split_dir: str = "splits") -
         ]:
             with open(os.path.join(out_dir, f"split_{name}_{i}.txt"), "w") as f:
                 for idx in indices:
-                    f.write(lt_samples[idx] + "\n")
+                    f.write(shared_samples[idx] + "\n")
 
 
 def get_splits(cohort: str, split: int, split_dir: str = "splits") -> tuple[list[str], list[str], list[str]]:

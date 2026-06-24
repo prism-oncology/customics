@@ -213,7 +213,7 @@ class TestCustOMICSInference:
         assert z.shape[0] == 20  # N_SAMPLES
 
     def test_get_latent_invariant_to_modality_order(self, fitted_model, rna_df, cnv_df, clinical_df):
-        # Rows are realigned to get_common_samples, so shuffling one modality's
+        # Rows are realigned to get_shared_samples, so shuffling one modality's
         # row order must not change the latent representation.
         import numpy as np
         from anndata import AnnData

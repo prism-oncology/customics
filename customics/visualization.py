@@ -81,11 +81,11 @@ def plot_representation(
     show : bool
         If True, display the figure interactively.
     """
-    from customics.utils import get_common_samples
+    from customics.utils import get_shared_samples
 
-    lt_samples = get_common_samples(mdata)
+    shared_samples = get_shared_samples(mdata)
     z = model.get_latent_representation(mdata)
-    labels_arr = mdata.obs.loc[lt_samples, label].values
+    labels_arr = mdata.obs.loc[shared_samples, label].values
     save_plot_score(filename, z, labels_arr, title, show=show)
 
 
@@ -121,14 +121,14 @@ def plot_survival_stratification(
     from lifelines import KaplanMeierFitter
 
     from customics.metrics.survival import cox_log_rank
-    from customics.utils import get_common_samples
+    from customics.utils import get_shared_samples
 
-    lt_samples = get_common_samples(mdata)
+    shared_samples = get_shared_samples(mdata)
     z = model.get_latent_representation(mdata)
     hazard_pred = model.survival_predictor(torch.tensor(z, dtype=torch.float32).to(model.device)).cpu().detach().numpy()
     median_hazard = np.mean(hazard_pred)
-    high = [s for s, h in zip(lt_samples, hazard_pred) if h > median_hazard]
-    low = [s for s, h in zip(lt_samples, hazard_pred) if h <= median_hazard]
+    high = [s for s, h in zip(shared_samples, hazard_pred) if h > median_hazard]
+    low = [s for s, h in zip(shared_samples, hazard_pred) if h <= median_hazard]
 
     kmf_low = KaplanMeierFitter(label="low risk")
     kmf_high = KaplanMeierFitter(label="high risk")
@@ -137,8 +137,8 @@ def plot_survival_stratification(
 
     p_value = cox_log_rank(
         hazard_pred.reshape(-1),
-        np.array(mdata.obs.loc[lt_samples, event].values, dtype=float),
-        np.array(mdata.obs.loc[lt_samples, surv_time].values, dtype=float),
+        np.array(mdata.obs.loc[shared_samples, event].values, dtype=float),
+        np.array(mdata.obs.loc[shared_samples, surv_time].values, dtype=float),
     )
     kmf_low.plot()
     kmf_high.plot()
