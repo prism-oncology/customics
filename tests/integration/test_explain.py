@@ -124,7 +124,7 @@ class TestExplainEdgeCases:
     def test_unknown_samples_are_silently_dropped(self, fitted_model, mdata, tmp_path, monkeypatch):
         """Sample IDs not in the source modality are silently filtered out."""
         monkeypatch.chdir(tmp_path)
-        sample_ids = list(mdata.obs_names[:5]) + ["DOES_NOT_EXIST"]
+        sample_ids = [*list(mdata.obs_names[:5]), "DOES_NOT_EXIST"]
         fitted_model.explain(
             sample_id=sample_ids,
             mdata=mdata,

@@ -129,32 +129,12 @@ class TestPlotLoss:
         fitted_model.plot_loss(show=False)
         plt.close("all")
 
-    def test_history_required(
-        self,
-        source_params,
-        central_params,
-        classif_params,
-        surv_params,
-        train_params,
-        device,
-    ):
-        """plot_loss() on an unfitted model (empty history) must not raise."""
+    def test_plot_loss_twice_does_not_accumulate_figures(self, fitted_model):
+        """Calling plot_loss() multiple times must not leak matplotlib figures."""
         import matplotlib.pyplot as plt
 
-        from customics import CustOMICS
-
-        model = CustOMICS(
-            source_params,
-            central_params,
-            classif_params,
-            surv_params,
-            train_params,
-            device,
-        )
-        # Empty history — the call should either succeed or raise a clear error,
-        # but must not crash the interpreter.
-        try:
-            model.plot_loss(show=False)
-        except Exception:
-            pass
+        before = len(plt.get_fignums())
+        fitted_model.plot_loss(show=False)
+        fitted_model.plot_loss(show=False)
         plt.close("all")
+        assert len(plt.get_fignums()) == before
