@@ -10,17 +10,12 @@ def consensus_loss(x: list[torch.Tensor], autoencoders: nn.ModuleList) -> torch.
     For every pair of sources (i, j), measures how well source i's encoder
     followed by source j's decoder can reconstruct source j's input.
 
-    Parameters
-    ----------
-    x : list of torch.Tensor
-        Per-source input tensors.
-    autoencoders : nn.ModuleList
-        Per-source autoencoders with accessible `encoder` and `decoder`
-        sub-modules.
+    Args:
+        x: Per-source input tensors.
+        autoencoders: Per-source autoencoders with accessible `encoder` and `decoder`
+            sub-modules.
 
-    Returns
-    -------
-    torch.Tensor
+    Returns:
         Scalar consensus loss.
     """
     mse = nn.MSELoss()

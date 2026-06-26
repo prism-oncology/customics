@@ -11,21 +11,14 @@ from .. import FullyConnectedLayer
 class Decoder(nn.Module):
     """Deterministic decoder that maps a latent vector back to data space.
 
-    Parameters
-    ----------
-    latent_dim : int
-        Dimension of the latent representation.
-    hidden_dim : list of int
-        Sizes of intermediate hidden layers (in encoder order; reversed
-        internally).
-    output_dim : int
-        Dimension of the reconstructed output.
-    norm_layer : type or bool
-        Normalization layer class or `True` for `nn.BatchNorm1d`.
-    leaky_slope : float
-        Negative slope for LeakyReLU activations.
-    dropout : float
-        Dropout rate (0 = disabled).
+    Args:
+        latent_dim: Dimension of the latent representation.
+        hidden_dim: Sizes of intermediate hidden layers (in encoder order; reversed
+            internally).
+        output_dim: Dimension of the reconstructed output.
+        norm_layer: Normalization layer class or `True` for `nn.BatchNorm1d`.
+        leaky_slope: Negative slope for LeakyReLU activations.
+        dropout: Dropout rate (0 = disabled).
     """
 
     def __init__(
@@ -71,14 +64,10 @@ class Decoder(nn.Module):
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """Decode latent vector `z` to data space.
 
-        Parameters
-        ----------
-        z : torch.Tensor
-            Latent tensor, shape (batch, latent_dim).
+        Args:
+            z: Latent tensor, shape (batch, latent_dim).
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Reconstructed tensor, shape (batch, output_dim).
         """
         return self.net(z)

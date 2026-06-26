@@ -15,28 +15,19 @@ _ACTIVATION_MAP: dict[str, type[nn.Module]] = {
 class FullyConnectedLayer(nn.Module):
     """A single fully-connected block: Linear → [BatchNorm] → [Dropout] → [Activation].
 
-    Parameters
-    ----------
-    input_dim : int
-        Input feature dimension.
-    output_dim : int
-        Output feature dimension.
-    norm_layer : type or bool, optional
-        Normalization layer class (e.g. `nn.BatchNorm1d`) or `True` to use
-        the default `nn.BatchNorm1d`.  Pass `False` or `None` to skip
-        normalisation (equivalent to `normalization=False`).
-    leaky_slope : float
-        Negative slope for LeakyReLU.
-    dropout : float
-        Dropout probability; disabled when `<= 0`.
-    activation : bool
-        Whether to append an activation function.
-    normalization : bool
-        Whether to append a batch-normalisation layer.
-    activation_name : str
-        Name of the activation function (case-insensitive).  Supported values:
-        `'relu'`, `'sigmoid'`, `'leakyrelu'`, `'tanh'`, `'softmax'`,
-        `'no'`.
+    Args:
+        input_dim: Input feature dimension.
+        output_dim: Output feature dimension.
+        norm_layer: Normalization layer class (e.g. `nn.BatchNorm1d`) or `True` to use
+            the default `nn.BatchNorm1d`.  Pass `False` or `None` to skip
+            normalisation (equivalent to `normalization=False`).
+        leaky_slope: Negative slope for LeakyReLU.
+        dropout: Dropout probability; disabled when `<= 0`.
+        activation: Whether to append an activation function.
+        normalization: Whether to append a batch-normalisation layer.
+        activation_name: Name of the activation function (case-insensitive).  Supported values:
+            `'relu'`, `'sigmoid'`, `'leakyrelu'`, `'tanh'`, `'softmax'`,
+            `'no'`.
     """
 
     def __init__(

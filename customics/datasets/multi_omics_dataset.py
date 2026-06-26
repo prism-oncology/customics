@@ -17,21 +17,16 @@ class MultiOmicsDataset(Dataset):
     directly from `mdata.obs`; class labels are taken from the pre-encoded
     `labels` Series so the dataset stays agnostic to label encoding.
 
-    Parameters
-    ----------
-    mdata : MuData
-        Multi-omics object whose `obs` holds the clinical annotations.
-    shared_samples : list of str
-        Ordered list of sample IDs to include (must be present in every
-        omics modality and in `mdata.obs`).
-    labels : pd.Series or None
-        Encoded class labels indexed by sample ID.  Pass `None` to disable
-        label loading (returns 0).
+    Args:
+        mdata: Multi-omics object whose `obs` holds the clinical annotations.
+        shared_samples: Ordered list of sample IDs to include (must be present in every
+            omics modality and in `mdata.obs`).
+        labels: Encoded class labels indexed by sample ID.  Pass `None` to disable
+            label loading (returns 0).
 
-    Examples
-    --------
-    >>> dataset = MultiOmicsDataset(mdata, samples, labels)
-    >>> omics_tensors, label, time, event = dataset[0]
+    Examples:
+        >>> dataset = MultiOmicsDataset(mdata, samples, labels)
+        >>> omics_tensors, label, time, event = dataset[0]
     """
 
     def __init__(

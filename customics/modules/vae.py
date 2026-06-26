@@ -13,14 +13,10 @@ class VAE(nn.Module):
     The VAE loss combines MSE reconstruction with an MMD penalty between the
     learned posterior and a standard Gaussian prior.
 
-    Parameters
-    ----------
-    encoder : ProbabilisticEncoder
-        Inference network that outputs `(mean, log_var)`.
-    decoder : ProbabilisticDecoder
-        Generative network.
-    device : torch.device
-        Compute device.
+    Args:
+        encoder: Inference network that outputs `(mean, log_var)`.
+        decoder: Generative network.
+        device: Compute device.
     """
 
     def __init__(
@@ -38,16 +34,11 @@ class VAE(nn.Module):
     def reparameterize(self, mean: torch.Tensor, log_var: torch.Tensor) -> torch.Tensor:
         """Apply the reparameterisation trick.
 
-        Parameters
-        ----------
-        mean : torch.Tensor
-            Posterior mean.
-        log_var : torch.Tensor
-            Posterior log-variance.
+        Args:
+            mean: Posterior mean.
+            log_var: Posterior log-variance.
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Sampled latent vector.
         """
         std = torch.exp(0.5 * log_var)
@@ -57,17 +48,13 @@ class VAE(nn.Module):
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode `x`, sample `z`, and reconstruct.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor, shape (batch, input_dim).
+        Args:
+            x: Input tensor, shape (batch, input_dim).
 
-        Returns
-        -------
-        x_hat : torch.Tensor
-            Reconstruction, shape (batch, input_dim).
-        z : torch.Tensor
-            Sampled latent vector, shape (batch, latent_dim).
+        Returns:
+            A tuple `(x_hat, z)`:
+                - x_hat: Reconstruction, shape (batch, input_dim).
+                - z: Sampled latent vector, shape (batch, latent_dim).
         """
         mean, log_var = self.encoder(x)
         z = self.reparameterize(mean, log_var)
@@ -76,16 +63,11 @@ class VAE(nn.Module):
     def loss(self, x: torch.Tensor, beta: float) -> torch.Tensor:
         """Compute the VAE loss: reconstruction + `beta` * MMD.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor.
-        beta : float
-            Weight for the MMD regularisation term.
+        Args:
+            x: Input tensor.
+            beta: Weight for the MMD regularisation term.
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Scalar loss value.
         """
         x_hat, z = self.forward(x)

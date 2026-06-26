@@ -43,24 +43,23 @@ class CustOMICS(nn.Module):
     - **Phase 2** (`epoch >= switch`): the full pipeline — per-source AEs,
       central VAE, and task heads — is jointly optimised.
 
-    Examples
-    --------
-    >>> import torch
-    >>> from customics import CustOMICS
-    >>> model = CustOMICS(
-    ...     source_params={
-    ...         "rna": {"input_dim": 1000, "hidden_dim": [256, 128],
-    ...                 "latent_dim": 64, "norm": True, "dropout": 0.2},
-    ...     },
-    ...     central_params={"hidden_dim": [128], "latent_dim": 32,
-    ...                     "norm": True, "dropout": 0.2, "beta": 1},
-    ...     classif_params={"n_class": 3, "lambda": 5,
-    ...                     "hidden_layers": [32, 16], "dropout": 0.2},
-    ...     surv_params={"lambda": 1, "dims": [32, 16], "activation": "SELU",
-    ...                  "l2_reg": 1e-2, "norm": True, "dropout": 0.2},
-    ...     train_params={"switch": 5, "lr": 1e-3},
-    ...     device=torch.device("cpu"),
-    ... )
+    Examples:
+        >>> import torch
+        >>> from customics import CustOMICS
+        >>> model = CustOMICS(
+        ...     source_params={
+        ...         "rna": {"input_dim": 1000, "hidden_dim": [256, 128],
+        ...                 "latent_dim": 64, "norm": True, "dropout": 0.2},
+        ...     },
+        ...     central_params={"hidden_dim": [128], "latent_dim": 32,
+        ...                     "norm": True, "dropout": 0.2, "beta": 1},
+        ...     classif_params={"n_class": 3, "lambda": 5,
+        ...                     "hidden_layers": [32, 16], "dropout": 0.2},
+        ...     surv_params={"lambda": 1, "dims": [32, 16], "activation": "SELU",
+        ...                  "l2_reg": 1e-2, "norm": True, "dropout": 0.2},
+        ...     train_params={"switch": 5, "lr": 1e-3},
+        ...     device=torch.device("cpu"),
+        ... )
     """
 
     def __init__(
@@ -74,39 +73,38 @@ class CustOMICS(nn.Module):
     ) -> None:
         """Model initialization.
 
-        Parameters
-        ----------
-        source_params:
-            Per-source configuration.  Keys are source names; each value is a dict
-            with the following keys:
+        Args:
+            source_params:
+                Per-source configuration.  Keys are source names; each value is a dict
+                with the following keys:
 
-            * `input_dim` (int): number of input features.
-            * `hidden_dim` (list of int): hidden layer sizes.
-            * `latent_dim` (int): per-source latent dimension.
-            * `norm` (bool): whether to use batch normalisation.
-            * `dropout` (float): dropout rate in `[0, 1]`.
+                * `input_dim` (int): number of input features.
+                * `hidden_dim` (list of int): hidden layer sizes.
+                * `latent_dim` (int): per-source latent dimension.
+                * `norm` (bool): whether to use batch normalisation.
+                * `dropout` (float): dropout rate in `[0, 1]`.
 
-        central_params:
-            Central VAE configuration.  Required keys: `hidden_dim` (list of
-            int), `latent_dim` (int), `norm` (bool), `dropout` (float),
-            `beta` (float — MMD regularisation weight).
+            central_params:
+                Central VAE configuration.  Required keys: `hidden_dim` (list of
+                int), `latent_dim` (int), `norm` (bool), `dropout` (float),
+                `beta` (float — MMD regularisation weight).
 
-        classif_params:
-            Classifier configuration.  Required keys: `n_class` (int, >= 2),
-            `lambda` (float — loss weight), `hidden_layers` (list of int),
-            `dropout` (float).
+            classif_params:
+                Classifier configuration.  Required keys: `n_class` (int, >= 2),
+                `lambda` (float — loss weight), `hidden_layers` (list of int),
+                `dropout` (float).
 
-        surv_params:
-            Survival-predictor configuration.  Required keys: `lambda` (float),
-            `dims` (list of int), `activation` (str), `l2_reg` (float),
-            `norm` (bool), `dropout` (float).
+            surv_params:
+                Survival-predictor configuration.  Required keys: `lambda` (float),
+                `dims` (list of int), `activation` (str), `l2_reg` (float),
+                `norm` (bool), `dropout` (float).
 
-        train_params:
-            Training hyperparameters.  Required keys: `switch` (int — epoch at
-            which to enter phase 2) and `lr` (float — learning rate).
+            train_params:
+                Training hyperparameters.  Required keys: `switch` (int — epoch at
+                which to enter phase 2) and `lr` (float — learning rate).
 
-        device:
-            Torch compute device.
+            device:
+                Torch compute device.
         """
         super().__init__()
         self._validate_params(source_params, central_params, classif_params, train_params)
@@ -253,19 +251,14 @@ class CustOMICS(nn.Module):
     def forward(self, x: list[torch.Tensor]) -> tuple[list[torch.Tensor], list[torch.Tensor], torch.Tensor]:
         """Full forward pass through per-source AEs and central encoder.
 
-        Parameters
-        ----------
-        x:
-            One tensor per omics source, shape `(batch, features_i)`.
+        Args:
+            x: One tensor per omics source, shape `(batch, features_i)`.
 
-        Returns
-        -------
-        reconstructions:
-            Per-source reconstructions.
-        representations:
-            Per-source latent vectors.
-        mean:
-            Central VAE posterior mean, shape `(batch, central_latent_dim)`.
+        Returns:
+            A tuple `(reconstructions, representations, mean)`:
+                - reconstructions: Per-source reconstructions.
+                - representations: Per-source latent vectors.
+                - mean: Central VAE posterior mean, shape `(batch, central_latent_dim)`.
         """
         reconstructions, representations = [], []
         for xi, ae in zip(x, self.autoencoders):
@@ -377,28 +370,18 @@ class CustOMICS(nn.Module):
     ) -> CustOMICS:
         """Train the customics model.
 
-        Parameters
-        ----------
-        mdata : MuData
-            Multi-omics object whose `obs` holds the clinical annotations.
-        omics_val:
-            Validation omics data; same format as `omics_train`.
-        batch_size:
-            Mini-batch size.
-        n_epochs:
-            Number of training epochs.
-        verbose:
-            Log epoch-level loss when True.
+        Args:
+            mdata: Multi-omics object whose `obs` holds the clinical annotations.
+            omics_val: Validation omics data; same format as `omics_train`.
+            batch_size: Mini-batch size.
+            n_epochs: Number of training epochs.
+            verbose: Log epoch-level loss when True.
 
-        Returns
-        -------
-        CustOMICS
+        Returns:
             `self` (enables method chaining).
 
-        Raises
-        ------
-        DataValidationError
-            If required columns are missing or samples don't overlap.
+        Raises:
+            DataValidationError: If required columns are missing or samples don't overlap.
         """
 
         label, event, surv_time = self._validate_fit_inputs(mdata)
@@ -487,21 +470,15 @@ class CustOMICS(nn.Module):
     ) -> np.ndarray:
         """Compute the integrated central latent representation.
 
-        Parameters
-        ----------
-        mdata : MuData
-            Multi-omics object with all sources (same keys as used in `fit`).
+        Args:
+            mdata: Multi-omics object with all sources (same keys as used in `fit`).
 
-        Returns
-        -------
-        np.ndarray
+        Returns:
             Latent matrix, shape `(n_samples, central_latent_dim)`. Rows
             correspond to `get_shared_samples(mdata)`, in that order.
 
-        Raises
-        ------
-        ModelNotFittedError
-            If called before `fit()`.
+        Raises:
+            ModelNotFittedError: If called before `fit()`.
         """
         self._require_fitted()
         self._set_eval_mode()
@@ -517,20 +494,14 @@ class CustOMICS(nn.Module):
     def predict(self, mdata: MuData) -> np.ndarray:
         """Predict class labels.
 
-        Parameters
-        ----------
-        mdata : MuData
-            Multi-omics object matching the sources used in `fit`.
+        Args:
+            mdata: Multi-omics object matching the sources used in `fit`.
 
-        Returns
-        -------
-        np.ndarray
+        Returns:
             Integer class predictions, shape `(n_samples,)`.
 
-        Raises
-        ------
-        ModelNotFittedError
-            If called before `fit()`.
+        Raises:
+            ModelNotFittedError: If called before `fit()`.
         """
         self._require_fitted()
         self._set_eval_mode()
@@ -542,20 +513,14 @@ class CustOMICS(nn.Module):
     def predict_survival(self, mdata: MuData) -> dict[str, pd.DataFrame]:
         """Compute patient-level estimated survival functions.
 
-        Parameters
-        ----------
-        mdata : MuData
-            Multi-omics object matching the sources used in `fit`.
+        Args:
+            mdata: Multi-omics object matching the sources used in `fit`.
 
-        Returns
-        -------
-        dict
+        Returns:
             Maps sample ID → estimated survival function DataFrame.
 
-        Raises
-        ------
-        ModelNotFittedError
-            If called before `fit()`.
+        Raises:
+            ModelNotFittedError: If called before `fit()`.
         """
         self._require_fitted()
         shared_samples = get_shared_samples(mdata)
@@ -568,18 +533,13 @@ class CustOMICS(nn.Module):
     def source_predict(self, x: torch.Tensor, source: str) -> torch.Tensor:
         """Predict class logits from a single-source input tensor.
 
-        Used internally by the SHAP :class:`~customics.explain.shap.ModelWrapper`.
+        Used internally by the SHAP `customics.explain.shap.ModelWrapper`.
 
-        Parameters
-        ----------
-        x:
-            Input tensor for `source`, shape `(batch, features)`.
-        source:
-            Source name (must be in `self.source_names`).
+        Args:
+            x: Input tensor for `source`, shape `(batch, features)`.
+            source: Source name (must be in `self.source_names`).
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Class logits, shape `(batch, n_class)`.
         """
         if source not in self.source_names:
@@ -601,31 +561,20 @@ class CustOMICS(nn.Module):
     ) -> float | dict[str, float]:
         """Evaluate the model on held-out data.
 
-        Parameters
-        ----------
-        mdata : MuData
-            Multi-omics object whose `obs` holds the clinical annotations.
-        task:
-            `'classification'` or `'survival'`.
-        batch_size:
-            Evaluation batch size.
-        plot_roc:
-            Save a ROC curve image (classification only).
+        Args:
+            mdata: Multi-omics object whose `obs` holds the clinical annotations.
+            task: `'classification'` or `'survival'`.
+            batch_size: Evaluation batch size.
+            plot_roc: Save a ROC curve image (classification only).
 
-        Returns
-        -------
-        float
-            Concordance index for `task='survival'`.
-        dict
-            Metrics dict (Accuracy, F1-score, Precision, Recall, AUC) for
+        Returns:
+            Concordance index (float) for `task='survival'`, or a metrics dict
+            (Accuracy, F1-score, Precision, Recall, AUC) for
             `task='classification'`.
 
-        Raises
-        ------
-        ModelNotFittedError
-            If called before `fit()`.
-        ValueError
-            If `task` is not `'classification'` or `'survival'`.
+        Raises:
+            ModelNotFittedError: If called before `fit()`.
+            ValueError: If `task` is not `'classification'` or `'survival'`.
         """
         self._require_fitted()
         if task not in ("classification", "survival"):
@@ -703,30 +652,20 @@ class CustOMICS(nn.Module):
     ) -> None:
         """Compute and plot SHAP values for one omics source and one subtype.
 
-        Uses :class:`shap.DeepExplainer` on the single-source forward path.
+        Uses `shap.DeepExplainer` on the single-source forward path.
         SHAP values are computed for `subtype` against all other classes.
 
-        Parameters
-        ----------
-        sample_id:
-            Sample IDs to use as the SHAP background and foreground sets.
-        mdata : MuData
-            Multi-omics object whose `obs` holds the clinical metadata.
-        source:
-            Omics source key to explain.
-        subtype:
-            Class label to explain.
-        label:
-            Column in `clinical_df` with class labels.
-        device:
-            Device for SHAP tensors.
-        show:
-            Display the SHAP plot interactively.
+        Args:
+            sample_id: Sample IDs to use as the SHAP background and foreground sets.
+            mdata: Multi-omics object whose `obs` holds the clinical metadata.
+            source: Omics source key to explain.
+            subtype: Class label to explain.
+            label: Column in `clinical_df` with class labels.
+            device: Device for SHAP tensors.
+            show: Display the SHAP plot interactively.
 
-        Raises
-        ------
-        ModelNotFittedError
-            If called before `fit()`.
+        Raises:
+            ModelNotFittedError: If called before `fit()`.
         """
         import matplotlib.pyplot as plt
         import shap
@@ -790,9 +729,7 @@ class CustOMICS(nn.Module):
     def get_number_parameters(self) -> int:
         """Return the total number of trainable parameters.
 
-        Returns
-        -------
-        int
+        Returns:
             Parameter count.
         """
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
@@ -800,10 +737,8 @@ class CustOMICS(nn.Module):
     def plot_loss(self, show: bool = True) -> None:
         """Plot training (and validation) loss history.
 
-        Parameters
-        ----------
-        show:
-            Display the figure interactively.
+        Args:
+            show: Display the figure interactively.
         """
         from customics.visualization import plot_loss as _plot
 
@@ -820,20 +755,13 @@ class CustOMICS(nn.Module):
     ) -> None:
         """Compute latent representations and save a t-SNE scatter plot.
 
-        Parameters
-        ----------
-        omics_df:
-            Multi-omics data.
-        clinical_df:
-            Clinical metadata.
-        label:
-            Column to use for colouring samples.
-        filename:
-            Output path prefix (a `.png` suffix is appended).
-        title:
-            Plot title.
-        show:
-            Display the figure interactively.
+        Args:
+            omics_df: Multi-omics data.
+            clinical_df: Clinical metadata.
+            label: Column to use for colouring samples.
+            filename: Output path prefix (a `.png` suffix is appended).
+            title: Plot title.
+            show: Display the figure interactively.
         """
         from customics.visualization import plot_representation as _plot
 
@@ -851,22 +779,14 @@ class CustOMICS(nn.Module):
     ) -> None:
         """Stratify patients by predicted risk and plot Kaplan-Meier curves.
 
-        Parameters
-        ----------
-        omics_df:
-            Multi-omics data.
-        clinical_df:
-            Clinical metadata.
-        event:
-            Event-indicator column.
-        surv_time:
-            Survival-time column.
-        plot_title:
-            Title prefix for the figure.
-        save_path:
-            Save the figure to this path when provided.
-        show:
-            Display the figure interactively.
+        Args:
+            omics_df: Multi-omics data.
+            clinical_df: Clinical metadata.
+            event: Event-indicator column.
+            surv_time: Survival-time column.
+            plot_title: Title prefix for the figure.
+            save_path: Save the figure to this path when provided.
+            show: Display the figure interactively.
         """
         from customics.visualization import plot_survival_stratification as _plot
 
@@ -883,10 +803,8 @@ class CustOMICS(nn.Module):
         the model plus the `state_dict` and fitted encoders so that inference
         works immediately after [load](api/train/#customics.CustOMICS.load).
 
-        Parameters
-        ----------
-        path:
-            Destination file (conventionally `*.pt` or `*.pth`).
+        Args:
+            path: Destination file (conventionally `*.pt` or `*.pth`).
         """
         checkpoint = {
             "source_params": self._source_params,
@@ -911,16 +829,11 @@ class CustOMICS(nn.Module):
     def load(cls, path: str | Path, device: torch.device | None = None) -> CustOMICS:
         """Load a model previously saved with [save](api/train/#customics.CustOMICS.save).
 
-        Parameters
-        ----------
-        path:
-            Path to the checkpoint file written by [save](api/train/#customics.CustOMICS.save).
-        device:
-            Target device.  Defaults to CPU when not specified.
+        Args:
+            path: Path to the checkpoint file written by [save](api/train/#customics.CustOMICS.save).
+            device: Target device.  Defaults to CPU when not specified.
 
-        Returns
-        -------
-        CustOMICS
+        Returns:
             A fully initialised, ready-to-use model instance.
         """
         if device is None:

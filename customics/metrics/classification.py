@@ -16,20 +16,13 @@ def roc_auc_score_multiclass(
 ) -> float:
     """Compute multi-class ROC-AUC using one-vs-one strategy.
 
-    Parameters
-    ----------
-    y_true : np.ndarray
-        Integer class labels.
-    y_pred : np.ndarray
-        Predicted class probabilities, shape (n_samples, n_classes).
-    ohe : OneHotEncoder
-        Fitted encoder used to binarise `y_true`.
-    average : str
-        Averaging strategy passed to :func:`sklearn.metrics.roc_auc_score`.
+    Args:
+        y_true: Integer class labels.
+        y_pred: Predicted class probabilities, shape (n_samples, n_classes).
+        ohe: Fitted encoder used to binarise `y_true`.
+        average: Averaging strategy passed to `sklearn.metrics.roc_auc_score`.
 
-    Returns
-    -------
-    float
+    Returns:
         ROC-AUC score.
     """
     y_true_bin = ohe.transform(np.array(y_true).reshape(-1, 1))
@@ -47,26 +40,16 @@ def multi_classification_evaluation(
 ) -> dict[str, float]:
     """Compute a standard classification metrics dictionary.
 
-    Parameters
-    ----------
-    y_true : np.ndarray
-        Ground-truth integer labels.
-    y_pred : np.ndarray
-        Predicted integer labels.
-    y_pred_proba : np.ndarray
-        Predicted class probabilities, shape (n_samples, n_classes).
-    average : str
-        Averaging strategy for precision, recall, and F1.
-    save_confusion : bool
-        If True, save a confusion matrix heatmap to `filename`.
-    filename : str, optional
-        Path prefix for the confusion matrix image (without extension).
-    ohe : OneHotEncoder, optional
-        Required when computing AUC.
+    Args:
+        y_true: Ground-truth integer labels.
+        y_pred: Predicted integer labels.
+        y_pred_proba: Predicted class probabilities, shape (n_samples, n_classes).
+        average: Averaging strategy for precision, recall, and F1.
+        save_confusion: If True, save a confusion matrix heatmap to `filename`.
+        filename: Path prefix for the confusion matrix image (without extension).
+        ohe: Required when computing AUC.
 
-    Returns
-    -------
-    dict
+    Returns:
         Keys: `'Accuracy'`, `'F1-score'`, `'Precision'`, `'Recall'`,
         `'AUC'`.
     """
@@ -104,18 +87,12 @@ def plot_roc_multiclass(
 ) -> None:
     """Plot per-class ROC curves for a multi-class model.
 
-    Parameters
-    ----------
-    y_test : np.ndarray
-        Ground-truth integer labels.
-    y_pred_proba : np.ndarray
-        Predicted class probabilities, shape (n_samples, n_classes).
-    filename : str
-        If non-empty, save the figure to `roc_multi_{filename}.png`.
-    n_classes : int
-        Number of classes.
-    var_names : list of str, optional
-        Class names used in the legend.
+    Args:
+        y_test: Ground-truth integer labels.
+        y_pred_proba: Predicted class probabilities, shape (n_samples, n_classes).
+        filename: If non-empty, save the figure to `roc_multi_{filename}.png`.
+        n_classes: Number of classes.
+        var_names: Class names used in the legend.
     """
     if var_names is None:
         var_names = [str(i) for i in range(n_classes)]

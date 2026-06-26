@@ -25,11 +25,10 @@ sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
 def toy_dataset() -> MuData:
     """Load toy multi-omics dataset from GitHub.
 
-    Returns
-    -------
-    MuData object:
-        - mdata.mod: Multi-omics dictionary (modality name → AnnData).
-        - mdata.obs: Clinical metadata with sample IDs as index.
+    Returns:
+        MuData object:
+            - mdata.mod: Multi-omics dictionary (modality name → AnnData).
+            - mdata.obs: Clinical metadata with sample IDs as index.
     """
     PREFIX = "https://raw.githubusercontent.com/prism-oncology/customics/refs/heads/main/data"
 
@@ -57,22 +56,15 @@ def toy_dataset() -> MuData:
 def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None:
     """Validate clinical columns and register them in `mdata.uns`.
 
-    Parameters
-    ----------
-    mdata : MuData
-        Multi-omics object whose `obs` holds the clinical annotations.
-    label : str
-        Name of the `mdata.obs` column used as the classification target.
-    event : str
-        Name of the `mdata.obs` column holding the survival event indicator
-        (1 = event, 0 = censored).
-    surv_time : str
-        Name of the `mdata.obs` column holding the survival time.
+    Args:
+        mdata: Multi-omics object whose `obs` holds the clinical annotations.
+        label: Name of the `mdata.obs` column used as the classification target.
+        event: Name of the `mdata.obs` column holding the survival event indicator
+            (1 = event, 0 = censored).
+        surv_time: Name of the `mdata.obs` column holding the survival time.
 
-    Raises
-    ------
-    DataValidationError
-        If any of the given columns is missing from `mdata.obs`.
+    Raises:
+        DataValidationError: If any of the given columns is missing from `mdata.obs`.
     """
     for key, column in {Keys.LABEL: label, Keys.EVENT: event, Keys.SURV_TIME: surv_time}.items():
         if column not in mdata.obs:
@@ -88,14 +80,10 @@ def prepare_input(mdata: MuData, label: str, event: str, surv_time: str) -> None
 def get_shared_samples(mdata: MuData) -> list[str]:
     """Return sample IDs present in every modality.
 
-    Parameters
-    ----------
-    mdata : MuData
-        Multi-omics object whose modalities' `obs_names` are sample IDs.
+    Args:
+        mdata: Multi-omics object whose modalities' `obs_names` are sample IDs.
 
-    Returns
-    -------
-    list of str
+    Returns:
         Sorted list of common sample IDs.
     """
     adatas = list(mdata.mod.values())
@@ -110,18 +98,13 @@ def get_sub_mudata(mdata: MuData, shared_samples: list[str]) -> MuData:
 
     Each modality is restricted to the requested samples that it actually
     contains (their intersection), and the clinical `obs`/`uns` are carried
-    over so the result is ready to pass to :meth:`CustOMICS.fit`.
+    over so the result is ready to pass to `CustOMICS.fit`.
 
-    Parameters
-    ----------
-    mdata : MuData
-        Multi-omics object to subset.
-    shared_samples : list of str
-        Sample IDs to keep.
+    Args:
+        mdata: Multi-omics object to subset.
+        shared_samples: Sample IDs to keep.
 
-    Returns
-    -------
-    MuData
+    Returns:
         A new MuData containing only `shared_samples`.
     """
     sub = MuData({
@@ -140,14 +123,10 @@ def get_sub_mudata(mdata: MuData, shared_samples: list[str]) -> MuData:
 def save_splits(shared_samples: list[str], cohort: str, split_dir: str = "splits") -> None:
     """Compute 5-fold cross-validation splits and persist them to disk.
 
-    Parameters
-    ----------
-    shared_samples : list of str
-        All sample IDs.
-    cohort : str
-        Cohort name used to create a subdirectory under `split_dir`.
-    split_dir : str
-        Root directory for split files.
+    Args:
+        shared_samples: All sample IDs.
+        cohort: Cohort name used to create a subdirectory under `split_dir`.
+        split_dir: Root directory for split files.
     """
     kf = KFold(n_splits=5)
     out_dir = os.path.join(split_dir, cohort)
@@ -167,18 +146,12 @@ def save_splits(shared_samples: list[str], cohort: str, split_dir: str = "splits
 def get_splits(cohort: str, split: int, split_dir: str = "splits") -> tuple[list[str], list[str], list[str]]:
     """Load pre-computed train/val/test sample IDs for a given fold.
 
-    Parameters
-    ----------
-    cohort : str
-        Cohort name.
-    split : int
-        Fold index (1-based).
-    split_dir : str
-        Root directory containing split files.
+    Args:
+        cohort: Cohort name.
+        split: Fold index (1-based).
+        split_dir: Root directory containing split files.
 
-    Returns
-    -------
-    tuple of (list, list, list)
+    Returns:
         `(samples_train, samples_val, samples_test)`.
     """
     out_dir = os.path.join(split_dir, cohort)

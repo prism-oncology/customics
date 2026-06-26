@@ -14,20 +14,13 @@ class ProbabilisticEncoder(nn.Module):
     Outputs the mean and log-variance of the approximate posterior
     `q(z | x)`.
 
-    Parameters
-    ----------
-    input_dim : int
-        Dimension of the input tensor.
-    hidden_dim : list of int
-        Sizes of intermediate hidden layers.
-    latent_dim : int
-        Dimension of the latent space.
-    norm_layer : type or bool
-        Normalization layer class or `True` for `nn.BatchNorm1d`.
-    leaky_slope : float
-        Negative slope for LeakyReLU activations.
-    dropout : float
-        Dropout rate (0 = disabled).
+    Args:
+        input_dim: Dimension of the input tensor.
+        hidden_dim: Sizes of intermediate hidden layers.
+        latent_dim: Dimension of the latent space.
+        norm_layer: Normalization layer class or `True` for `nn.BatchNorm1d`.
+        leaky_slope: Negative slope for LeakyReLU activations.
+        dropout: Dropout rate (0 = disabled).
     """
 
     def __init__(
@@ -81,17 +74,13 @@ class ProbabilisticEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the posterior mean and log-variance.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor, shape (batch, input_dim).
+        Args:
+            x: Input tensor, shape (batch, input_dim).
 
-        Returns
-        -------
-        mean : torch.Tensor
-            Posterior mean, shape (batch, latent_dim).
-        log_var : torch.Tensor
-            Posterior log-variance, shape (batch, latent_dim).
+        Returns:
+            A tuple `(mean, log_var)`:
+                - mean: Posterior mean, shape (batch, latent_dim).
+                - log_var: Posterior log-variance, shape (batch, latent_dim).
         """
         h = self.net(x)
         return self.mean_layer(h), self.log_var_layer(h)

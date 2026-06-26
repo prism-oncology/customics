@@ -6,16 +6,11 @@ import torch
 def compute_kernel(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """Compute the RBF kernel matrix between two sample sets.
 
-    Parameters
-    ----------
-    x : torch.Tensor
-        Shape (n, d).
-    y : torch.Tensor
-        Shape (m, d).
+    Args:
+        x: Shape (n, d).
+        y: Shape (m, d).
 
-    Returns
-    -------
-    torch.Tensor
+    Returns:
         Kernel matrix of shape (n, m).
     """
     x_size, y_size, dim = x.size(0), y.size(0), x.size(1)
@@ -27,16 +22,11 @@ def compute_kernel(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 def compute_mmd(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """Compute the Maximum Mean Discrepancy between distributions `x` and `y`.
 
-    Parameters
-    ----------
-    x : torch.Tensor
-        Samples from the first distribution, shape (n, d).
-    y : torch.Tensor
-        Samples from the second distribution, shape (m, d).
+    Args:
+        x: Samples from the first distribution, shape (n, d).
+        y: Samples from the second distribution, shape (m, d).
 
-    Returns
-    -------
-    torch.Tensor
+    Returns:
         Scalar MMD value.
     """
     return compute_kernel(x, x).mean() + compute_kernel(y, y).mean() - 2 * compute_kernel(x, y).mean()

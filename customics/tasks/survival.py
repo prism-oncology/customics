@@ -18,28 +18,23 @@ _ACTIVATIONS: dict[str, type[nn.Module]] = {
 class SurvivalNet(nn.Module):
     """Fully-connected network that predicts log-hazard scores for Cox analysis.
 
-    Parameters
-    ----------
-    config : dict
-        Configuration dictionary with keys:
+    Args:
+        config: Configuration dictionary with keys:
 
-        * `dims` (list of int): layer sizes including input and output.
-        * `drop` (float): dropout probability.
-        * `norm` (bool): whether to apply batch normalisation.
-        * `activation` (str): activation function name (one of
-          `'SELU'`, `'ReLU'`, `'LeakyReLU'`, `'Tanh'`,
-          `'Sigmoid'`, `'ELU'`).
+            * `dims` (list of int): layer sizes including input and output.
+            * `drop` (float): dropout probability.
+            * `norm` (bool): whether to apply batch normalisation.
+            * `activation` (str): activation function name (one of
+              `'SELU'`, `'ReLU'`, `'LeakyReLU'`, `'Tanh'`,
+              `'Sigmoid'`, `'ELU'`).
 
-    Raises
-    ------
-    ConfigurationError
-        If `activation` is not in the supported set.
+    Raises:
+        ConfigurationError: If `activation` is not in the supported set.
 
-    Examples
-    --------
-    >>> net = SurvivalNet({"dims": [128, 64, 32, 1], "drop": 0.2,
-    ...                    "norm": True, "activation": "SELU"})
-    >>> hazard = net(torch.randn(8, 128))   # shape (8, 1)
+    Examples:
+        >>> net = SurvivalNet({"dims": [128, 64, 32, 1], "drop": 0.2,
+        ...                    "norm": True, "activation": "SELU"})
+        >>> hazard = net(torch.randn(8, 128))   # shape (8, 1)
     """
 
     def __init__(self, config: dict) -> None:
@@ -66,14 +61,10 @@ class SurvivalNet(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Predict log-hazard scores.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Latent representation, shape (batch, dims[0]).
+        Args:
+            x: Latent representation, shape (batch, dims[0]).
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Log-hazard scores, shape (batch, 1).
         """
         return self.model(x)

@@ -15,20 +15,13 @@ def CoxLoss(
 
     Credit: Travers Ching — cox-nnet (https://github.com/traversc/cox-nnet).
 
-    Parameters
-    ----------
-    survtime : torch.Tensor
-        Observed survival times, shape (batch,).
-    censor : torch.Tensor
-        Event indicator (1 = event, 0 = censored), shape (batch,).
-    hazard_pred : torch.Tensor
-        Predicted log-hazard scores, shape (batch, 1) or (batch,).
-    device : torch.device
-        Device on which to place intermediate tensors.
+    Args:
+        survtime: Observed survival times, shape (batch,).
+        censor: Event indicator (1 = event, 0 = censored), shape (batch,).
+        hazard_pred: Predicted log-hazard scores, shape (batch, 1) or (batch,).
+        device: Device on which to place intermediate tensors.
 
-    Returns
-    -------
-    torch.Tensor
+    Returns:
         Scalar Cox loss.
     """
     n = len(survtime)
@@ -45,10 +38,8 @@ def CoxLoss(
 class NegativeLogLikelihood(nn.Module):
     """DeepSurv-style negative log-likelihood loss with L2 regularisation.
 
-    Parameters
-    ----------
-    l2_reg : float
-        L2 regularisation weight applied to model weights.
+    Args:
+        l2_reg: L2 regularisation weight applied to model weights.
     """
 
     def __init__(self, l2_reg: float) -> None:

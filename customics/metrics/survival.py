@@ -12,18 +12,12 @@ def CIndex_lifeline(
 ) -> float:
     """Compute the concordance index (C-index).
 
-    Parameters
-    ----------
-    hazards : np.ndarray
-        Predicted hazard scores, shape (n_samples, 1) or (n_samples,).
-    labels : np.ndarray
-        Event indicators (1 = event, 0 = censored).
-    survtime_all : np.ndarray
-        Observed survival times.
+    Args:
+        hazards: Predicted hazard scores, shape (n_samples, 1) or (n_samples,).
+        labels: Event indicators (1 = event, 0 = censored).
+        survtime_all: Observed survival times.
 
-    Returns
-    -------
-    float
+    Returns:
         Concordance index in [0, 1].
     """
     return concordance_index(survtime_all, -hazards, labels)
@@ -36,18 +30,12 @@ def cox_log_rank(
 ) -> float:
     """Compute the log-rank test p-value after dichotomising hazard scores at the median.
 
-    Parameters
-    ----------
-    hazardsdata : np.ndarray
-        Predicted hazard scores, shape (n_samples,).
-    labels : np.ndarray
-        Event indicators.
-    survtime_all : np.ndarray
-        Observed survival times.
+    Args:
+        hazardsdata: Predicted hazard scores, shape (n_samples,).
+        labels: Event indicators.
+        survtime_all: Observed survival times.
 
-    Returns
-    -------
-    float
+    Returns:
         Log-rank p-value.
     """
     median = np.median(hazardsdata)
@@ -64,16 +52,11 @@ def cox_log_rank(
 def accuracy_cox(hazardsdata: np.ndarray, labels: np.ndarray) -> float:
     """Fraction of correctly stratified patients (median-split accuracy).
 
-    Parameters
-    ----------
-    hazardsdata : np.ndarray
-        Predicted hazard scores.
-    labels : np.ndarray
-        Ground-truth event indicators.
+    Args:
+        hazardsdata: Predicted hazard scores.
+        labels: Ground-truth event indicators.
 
-    Returns
-    -------
-    float
+    Returns:
         Accuracy in [0, 1].
     """
     predicted = (hazardsdata > np.median(hazardsdata)).astype(int)

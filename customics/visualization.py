@@ -20,17 +20,12 @@ if TYPE_CHECKING:
 def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: bool = True) -> None:
     """Plot training (and optional validation) loss curves.
 
-    Parameters
-    ----------
-    history : list
-        Each element is either a scalar train loss or a tuple
-        `(train_loss, val_loss)`.
-    switch_epoch : int
-        Epoch at which the model switches to phase 2 (drawn as a dashed line).
-    figsize : tuple
-        Figure size `(width, height)` in inches.
-    show : bool
-        If True, call `plt.show()` after rendering.
+    Args:
+        history: Each element is either a scalar train loss or a tuple
+            `(train_loss, val_loss)`.
+        switch_epoch: Epoch at which the model switches to phase 2 (drawn as a dashed line).
+        figsize: Figure size `(width, height)` in inches.
+        show: If True, call `plt.show()` after rendering.
     """
     n_epochs = len(history)
     plt.figure(figsize=figsize)
@@ -66,20 +61,13 @@ def plot_representation(
 ) -> None:
     """Compute the latent representation and save a t-SNE scatter plot.
 
-    Parameters
-    ----------
-    model : CustOMICS
-        A fitted model.
-    mdata : MuData
-            Multi-omics object.
-    label : str
-        Column in `mdata.obs` to use for colouring.
-    filename : str
-        Output path (without extension).
-    title : str
-        Plot title.
-    show : bool
-        If True, display the figure interactively.
+    Args:
+        model: A fitted model.
+        mdata: Multi-omics object.
+        label: Column in `mdata.obs` to use for colouring.
+        filename: Output path (without extension).
+        title: Plot title.
+        show: If True, display the figure interactively.
     """
     from customics.utils import get_shared_samples
 
@@ -100,22 +88,14 @@ def plot_survival_stratification(
 ) -> None:
     """Stratify patients by median hazard and plot Kaplan-Meier curves.
 
-    Parameters
-    ----------
-    model : CustOMICS
-        A fitted model.
-    mdata : MuData
-            Multi-omics object.
-    event : str
-        Event indicator column.
-    surv_time : str
-        Survival time column.
-    plot_title : str
-        Title prefix for the figure.
-    save_path : str, optional
-        If provided, save the figure to this path.
-    show : bool
-        If True, display the figure interactively.
+    Args:
+        model: A fitted model.
+        mdata: Multi-omics object.
+        event: Event indicator column.
+        surv_time: Survival time column.
+        plot_title: Title prefix for the figure.
+        save_path: If provided, save the figure to this path.
+        show: If True, display the figure interactively.
     """
     import torch
     from lifelines import KaplanMeierFitter
@@ -152,18 +132,12 @@ def plot_survival_stratification(
 def save_plot_score(filename: str, z: np.ndarray, y: np.ndarray, title: str, show: bool = False) -> None:
     """Compute a t-SNE embedding and save a colour-coded scatter plot.
 
-    Parameters
-    ----------
-    filename : str
-        Output file path (without extension; a `.png` suffix is appended).
-    z : np.ndarray
-        High-dimensional feature matrix, shape (n_samples, n_features).
-    y : np.ndarray
-        Class labels for colouring, shape (n_samples,).
-    title : str
-        Plot title.
-    show : bool
-        If True, display the plot interactively after saving.
+    Args:
+        filename: Output file path (without extension; a `.png` suffix is appended).
+        z: High-dimensional feature matrix, shape (n_samples, n_features).
+        y: Class labels for colouring, shape (n_samples,).
+        title: Plot title.
+        show: If True, display the plot interactively after saving.
     """
     tsne = TSNE(n_components=2, verbose=0, perplexity=40)
     embedding = tsne.fit_transform(z)

@@ -11,25 +11,17 @@ from ..modules import FullyConnectedLayer
 class MultiClassifier(nn.Module):
     """Multi-layer fully-connected classifier.
 
-    Parameters
-    ----------
-    n_class : int
-        Number of output classes.
-    latent_dim : int
-        Dimension of the input latent representation.
-    norm_layer : type
-        Normalization layer class (default: `nn.BatchNorm1d`).
-    leaky_slope : float
-        Negative slope for LeakyReLU.
-    dropout : float
-        Dropout probability.
-    class_dim : list of int
-        Hidden layer sizes between `latent_dim` and the output.
+    Args:
+        n_class: Number of output classes.
+        latent_dim: Dimension of the input latent representation.
+        norm_layer: Normalization layer class (default: `nn.BatchNorm1d`).
+        leaky_slope: Negative slope for LeakyReLU.
+        dropout: Dropout probability.
+        class_dim: Hidden layer sizes between `latent_dim` and the output.
 
-    Examples
-    --------
-    >>> clf = MultiClassifier(n_class=4, latent_dim=128, class_dim=[64, 32])
-    >>> logits = clf(torch.randn(8, 128))   # shape (8, 4)
+    Examples:
+        >>> clf = MultiClassifier(n_class=4, latent_dim=128, class_dim=[64, 32])
+        >>> logits = clf(torch.randn(8, 128))   # shape (8, 4)
     """
 
     def __init__(
@@ -77,14 +69,10 @@ class MultiClassifier(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Return raw class logits.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor, shape (batch, latent_dim).
+        Args:
+            x: Input tensor, shape (batch, latent_dim).
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Logits, shape (batch, n_class).
         """
         return self.net(x)
@@ -92,14 +80,10 @@ class MultiClassifier(nn.Module):
     def predict(self, x: torch.Tensor) -> torch.Tensor:
         """Return the predicted class index.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor, shape (batch, latent_dim).
+        Args:
+            x: Input tensor, shape (batch, latent_dim).
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Integer class predictions, shape (batch,).
         """
         return torch.argmax(self.forward(x), dim=1)

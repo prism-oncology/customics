@@ -12,22 +12,15 @@ class Encoder(nn.Module):
     """Deterministic encoder that maps high-dimensional input to a latent vector.
 
     Architecture: `InputLayer → [HiddenLayers...] → OutputLayer`
-    where each hidden layer is a :class:`~customics.tools.net_utils.FullyConnectedLayer`.
+    where each hidden layer is a `customics.tools.net_utils.FullyConnectedLayer`.
 
-    Parameters
-    ----------
-    input_dim : int
-        Dimension of the input tensor.
-    hidden_dim : list of int
-        Sizes of intermediate hidden layers.
-    latent_dim : int
-        Dimension of the output latent representation.
-    norm_layer : type or bool
-        Normalization layer class or `True` for `nn.BatchNorm1d`.
-    leaky_slope : float
-        Negative slope for LeakyReLU activations.
-    dropout : float
-        Dropout rate (0 = disabled).
+    Args:
+        input_dim: Dimension of the input tensor.
+        hidden_dim: Sizes of intermediate hidden layers.
+        latent_dim: Dimension of the output latent representation.
+        norm_layer: Normalization layer class or `True` for `nn.BatchNorm1d`.
+        leaky_slope: Negative slope for LeakyReLU activations.
+        dropout: Dropout rate (0 = disabled).
     """
 
     def __init__(
@@ -72,14 +65,10 @@ class Encoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Encode `x` to a latent vector.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor, shape (batch, input_dim).
+        Args:
+            x: Input tensor, shape (batch, input_dim).
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Latent tensor, shape (batch, latent_dim).
         """
         return self.net(x)

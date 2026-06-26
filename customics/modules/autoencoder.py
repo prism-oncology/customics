@@ -9,14 +9,10 @@ from . import Decoder, Encoder
 class AutoEncoder(nn.Module):
     """Standard autoencoder for a single omics source.
 
-    Parameters
-    ----------
-    encoder : Encoder
-        Deterministic encoder network.
-    decoder : Decoder
-        Deterministic decoder network.
-    device : torch.device
-        Compute device.
+    Args:
+        encoder: Deterministic encoder network.
+        decoder: Deterministic decoder network.
+        device: Compute device.
     """
 
     def __init__(self, encoder: Encoder, decoder: Decoder, device: torch.device) -> None:
@@ -29,17 +25,13 @@ class AutoEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode `x` and reconstruct it.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor, shape (batch, input_dim).
+        Args:
+            x: Input tensor, shape (batch, input_dim).
 
-        Returns
-        -------
-        x_hat : torch.Tensor
-            Reconstruction, shape (batch, input_dim).
-        z : torch.Tensor
-            Latent representation, shape (batch, latent_dim).
+        Returns:
+            A tuple `(x_hat, z)`:
+                - x_hat: Reconstruction, shape (batch, input_dim).
+                - z: Latent representation, shape (batch, latent_dim).
         """
         z = self.encoder(x)
         return self.decoder(z), z
@@ -47,14 +39,10 @@ class AutoEncoder(nn.Module):
     def decode(self, z: torch.Tensor) -> torch.Tensor:
         """Decode a latent vector to data space.
 
-        Parameters
-        ----------
-        z : torch.Tensor
-            Latent tensor, shape (batch, latent_dim).
+        Args:
+            z: Latent tensor, shape (batch, latent_dim).
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Reconstructed tensor, shape (batch, input_dim).
         """
         return self.decoder(z)
@@ -62,16 +50,11 @@ class AutoEncoder(nn.Module):
     def loss(self, x: torch.Tensor, beta: float) -> torch.Tensor:
         """Compute reconstruction loss (MSE).
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor.
-        beta : float
-            Unused here; kept for a consistent interface with :class:`VAE`.
+        Args:
+            x: Input tensor.
+            beta: Unused here; kept for a consistent interface with `VAE`.
 
-        Returns
-        -------
-        torch.Tensor
+        Returns:
             Scalar MSE reconstruction loss.
         """
         x_hat, _ = self.forward(x)
