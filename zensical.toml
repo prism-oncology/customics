@@ -26,7 +26,7 @@ nav = [
 
 [project.theme]
 logo = "assets/customics_white.png"
-favicon = "assets/favicon.png"
+favicon = "assets/favicon-48.png"
 variant = "material"
 language = "en"
 
