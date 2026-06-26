@@ -24,17 +24,10 @@ class SurvivalNet(nn.Module):
             * `dims` (list of int): layer sizes including input and output.
             * `drop` (float): dropout probability.
             * `norm` (bool): whether to apply batch normalisation.
-            * `activation` (str): activation function name (one of
-              `'SELU'`, `'ReLU'`, `'LeakyReLU'`, `'Tanh'`,
-              `'Sigmoid'`, `'ELU'`).
+            * `activation` (str): activation function name (one of `'SELU'`, `'ReLU'`, `'LeakyReLU'`, `'Tanh'`, `'Sigmoid'`, `'ELU'`).
 
     Raises:
         ConfigurationError: If `activation` is not in the supported set.
-
-    Examples:
-        >>> net = SurvivalNet({"dims": [128, 64, 32, 1], "drop": 0.2,
-        ...                    "norm": True, "activation": "SELU"})
-        >>> hazard = net(torch.randn(8, 128))   # shape (8, 1)
     """
 
     def __init__(self, config: dict) -> None:

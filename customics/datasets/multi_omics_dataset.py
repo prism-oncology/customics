@@ -23,10 +23,6 @@ class MultiOmicsDataset(Dataset):
             omics modality and in `mdata.obs`).
         labels: Encoded class labels indexed by sample ID.  Pass `None` to disable
             label loading (returns 0).
-
-    Examples:
-        >>> dataset = MultiOmicsDataset(mdata, samples, labels)
-        >>> omics_tensors, label, time, event = dataset[0]
     """
 
     def __init__(

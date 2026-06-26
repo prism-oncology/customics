@@ -17,9 +17,11 @@
 
 `customics` is a Python package for integrating multiple genomic data modalities (RNA-seq, CNV, DNA methylation, …) using a hierarchical deep-learning architecture. It supports classification, survival outcome prediction, and SHAP-based explainability — all in a single scikit-learn-style API.
 
+It relies on [`mudata`](https://mudata.readthedocs.io/stable/), a core [scverse](https://scverse.org/) data structure for multimodal data.
+
 ## Installation
 
-`customics` can be installed via `pip`:
+`customics` can be installed from `PyPI` on all OS, for any Python version `>=3.11`:
 
 ```bash
 pip install customics

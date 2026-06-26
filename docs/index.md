@@ -9,7 +9,9 @@ A Python package for integrating multiple genomic data modalities (e.g., RNA-seq
 
 ## Overview
 
-`CustOmics` is designed to provide a modern and research-friendly framework for computational biology and precision medicine.
+CustOmics is designed to provide a modern and research-friendly framework for computational biology and precision medicine.
+
+It relies on [`mudata`](https://mudata.readthedocs.io/stable/), a core [scverse](https://scverse.org/) data structure for multimodal data.
 
 ## Architecture
 
@@ -79,4 +81,4 @@ At the core of Customics is a two-phase mixed-integration workflow:
 - Feature attribution analysis
 - Easily extensible to custom architectures, tasks, and omics sources
 
-Start using `CustOmics` by reading the [getting started](getting_started) guide.
+Start using CustOmics by reading the [getting started](getting_started) guide.

@@ -18,10 +18,6 @@ class MultiClassifier(nn.Module):
         leaky_slope: Negative slope for LeakyReLU.
         dropout: Dropout probability.
         class_dim: Hidden layer sizes between `latent_dim` and the output.
-
-    Examples:
-        >>> clf = MultiClassifier(n_class=4, latent_dim=128, class_dim=[64, 32])
-        >>> logits = clf(torch.randn(8, 128))   # shape (8, 4)
     """
 
     def __init__(

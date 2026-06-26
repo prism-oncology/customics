@@ -11,7 +11,7 @@ extra_css = ["stylesheets/style.css"]
 
 nav = [
    { "Home" = "index.md" },
-   { "Getting Started" = "getting_started.md" },
+   { "Getting started" = "getting_started.md" },
    { "API" = [
       "api/train.md",
       "api/evaluate.md",
@@ -64,7 +64,7 @@ inherited_members = true
 show_source = true
 show_root_heading = true
 heading_level = 4
-docstring_style = "numpy"
+docstring_style = "google"
 docstring_section_style = "table"
 
 [project.plugins.mkdocstrings.handlers.python]

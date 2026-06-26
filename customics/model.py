@@ -26,41 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class CustOMICS(nn.Module):
-    """Multi-omics integration model with hierarchical autoencoders and multi-task learning.
-
-    The architecture has two stages:
-
-    1. **Per-source autoencoders** — one deterministic autoencoder per omics
-       modality compresses high-dimensional features into a latent vector.
-    2. **Central VAE** — a variational autoencoder integrates the concatenated
-       per-source representations into a shared latent space used by downstream
-       task heads (classifier and survival predictor).
-
-    Training uses two phases, controlled by `train_params['switch']`:
-
-    - **Phase 1** (`epoch < switch`): only per-source autoencoders and task
-      heads are optimised; the central VAE is kept fixed.
-    - **Phase 2** (`epoch >= switch`): the full pipeline — per-source AEs,
-      central VAE, and task heads — is jointly optimised.
-
-    Examples:
-        >>> import torch
-        >>> from customics import CustOMICS
-        >>> model = CustOMICS(
-        ...     source_params={
-        ...         "rna": {"input_dim": 1000, "hidden_dim": [256, 128],
-        ...                 "latent_dim": 64, "norm": True, "dropout": 0.2},
-        ...     },
-        ...     central_params={"hidden_dim": [128], "latent_dim": 32,
-        ...                     "norm": True, "dropout": 0.2, "beta": 1},
-        ...     classif_params={"n_class": 3, "lambda": 5,
-        ...                     "hidden_layers": [32, 16], "dropout": 0.2},
-        ...     surv_params={"lambda": 1, "dims": [32, 16], "activation": "SELU",
-        ...                  "l2_reg": 1e-2, "norm": True, "dropout": 0.2},
-        ...     train_params={"switch": 5, "lr": 1e-3},
-        ...     device=torch.device("cpu"),
-        ... )
-    """
+    """Multi-omics integration model with hierarchical autoencoders and multi-task learning."""
 
     def __init__(
         self,
