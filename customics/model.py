@@ -712,8 +712,7 @@ class CustOMICS(nn.Module):
 
     def plot_representation(
         self,
-        omics_df: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
+        mdata: MuData,
         label: str,
         filename: str,
         title: str,
@@ -722,21 +721,19 @@ class CustOMICS(nn.Module):
         """Compute latent representations and save a t-SNE scatter plot.
 
         Args:
-            omics_df: Multi-omics data.
-            clinical_df: Clinical metadata.
-            label: Column to use for colouring samples.
+            mdata: Multi-omics object.
+            label: Column in `mdata.obs` to use for colouring samples.
             filename: Output path prefix (a `.png` suffix is appended).
             title: Plot title.
             show: Display the figure interactively.
         """
         from customics.visualization import plot_representation as _plot
 
-        _plot(self, omics_df, clinical_df, label, filename, title, show=show)
+        _plot(self, mdata, label, filename, title, show=show)
 
     def stratify(
         self,
-        omics_df: dict[str, pd.DataFrame],
-        clinical_df: pd.DataFrame,
+        mdata: MuData,
         event: str,
         surv_time: str,
         plot_title: str = "",
@@ -746,17 +743,16 @@ class CustOMICS(nn.Module):
         """Stratify patients by predicted risk and plot Kaplan-Meier curves.
 
         Args:
-            omics_df: Multi-omics data.
-            clinical_df: Clinical metadata.
-            event: Event-indicator column.
-            surv_time: Survival-time column.
+            mdata: Multi-omics object.
+            event: Event-indicator column in `mdata.obs`.
+            surv_time: Survival-time column in `mdata.obs`.
             plot_title: Title prefix for the figure.
             save_path: Save the figure to this path when provided.
             show: Display the figure interactively.
         """
         from customics.visualization import plot_survival_stratification as _plot
 
-        _plot(self, omics_df, clinical_df, event, surv_time, plot_title, save_path, show)
+        _plot(self, mdata, event, surv_time, plot_title, save_path, show)
 
     # ---------------------------------------------------------------------- #
     # Serialisation

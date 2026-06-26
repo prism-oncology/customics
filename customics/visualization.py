@@ -139,7 +139,8 @@ def save_plot_score(filename: str, z: np.ndarray, y: np.ndarray, title: str, sho
         title: Plot title.
         show: If True, display the plot interactively after saving.
     """
-    tsne = TSNE(n_components=2, verbose=0, perplexity=40)
+    perplexity = min(40, len(z) - 1)
+    tsne = TSNE(n_components=2, verbose=0, perplexity=perplexity)
     embedding = tsne.fit_transform(z)
     df = pd.DataFrame({"targets": y, "x-axis": embedding[:, 0], "y-axis": embedding[:, 1]})
     sns.scatterplot(

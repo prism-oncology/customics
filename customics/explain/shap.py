@@ -60,7 +60,7 @@ def random_training_sample(expr: pd.DataFrame, sample_size: int) -> pd.DataFrame
     Returns:
         Randomly sampled rows.
     """
-    return expr.sample(n=sample_size, axis=0)
+    return expr.sample(n=min(sample_size, len(expr)), axis=0)
 
 
 def split_expr_and_sample(
@@ -78,7 +78,8 @@ def split_expr_and_sample(
     Returns:
         Filtered and sampled expression rows.
     """
-    return expr[condition].sample(n=sample_size, axis=0)
+    filtered = expr[condition]
+    return filtered.sample(n=min(sample_size, len(filtered)), axis=0)
 
 
 def add_to_tensor(expr_selection: pd.DataFrame, device: str) -> torch.Tensor:

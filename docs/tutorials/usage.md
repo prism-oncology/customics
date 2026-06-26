@@ -19,7 +19,7 @@ This notebook walks through a complete **customics** workflow on the bundled toy
 ```
   protein  ──► AE_protein  ──┐
                              │
-  gene_exp ──► AE_gene   ──►─┤  Central VAE  ──► Classifier (tumour subtype)
+  rna      ──► AE_rna    ──►─┤  Central VAE  ──► Classifier (tumour subtype)
                              │   (latent z)
   methyl   ──► AE_methyl   ──┘               └──► Survival predictor (Cox)
 ```
@@ -55,36 +55,36 @@ The toy dataset contains **100 patients** with three omics modalities:
 | Source     | Features | Description                        |
 | ---------- | -------- | ---------------------------------- |
 | `protein`  | 160      | Reverse Phase Protein Array (RPPA) |
-| `gene_exp` | 131      | RNA-seq gene expression            |
+| `rna`      | 131      | RNA-seq gene expression            |
 | `methyl`   | 367      | DNA methylation (450K array)       |
 
 
 
 ```python
-omics_df, clinical_df = customics.toy_dataset()
+mdata = customics.toy_dataset()
 ```
 
-`omics_df` is a dict:
+`mdata` is a [`mudata.MuData`](https://mudata.readthedocs.io/stable/) object:
 
-- Keys are modality names (here, `'protein'`, `'gene_exp'`, and `'methyl'`)
-- Values are DataFrames indexed by **sample ID** (rows = samples, columns = features).
+- `mdata.mod` — dict of modality names → `AnnData` matrices (rows = samples, columns = features)
+- `mdata.obs` — shared clinical metadata DataFrame indexed by **sample ID**
 
 
 
 ```python
-omics_df.keys()
+list(mdata.mod.keys())
 ```
 
 
 
 
-    dict_keys(['protein', 'gene_exp', 'methyl'])
+    ['rna', 'protein', 'methyl']
 
 
 
 
 ```python
-omics_df["protein"]
+mdata["protein"].to_df()
 ```
 
 ```
@@ -106,7 +106,7 @@ subject100  1.731     1.670     2.633      0.366  ...        1.160
 
 
 
-`clinical_df` is a DataFrame whose index are sample IDs, and contains the following columns:
+`mdata.obs` is a DataFrame whose index are sample IDs, and contains the following columns:
 
 - an event-indicator (`OS`, 0 = censored, 1 = event)
 - a survival-time column (`OS.time`, in days).
@@ -115,7 +115,7 @@ subject100  1.731     1.670     2.633      0.366  ...        1.160
 
 
 ```python
-clinical_df
+mdata.obs
 ```
 
 | subject    | subjects | cluster.id | OS | OS.time |
@@ -142,14 +142,14 @@ We can show a quick summary of our omics and clinical data:
 
 ```python
 print("Omics sources loaded:")
-for name, df in omics_df.items():
-    print(f"  {name:10s}  {df.shape[0]:>4d} samples * {df.shape[1]:>4d} features")
-print(f"\nClinical data  : {clinical_df.shape[0]} rows * {clinical_df.shape[1]} columns")
+for name in mdata.mod:
+    print(f"  {name:10s}  {mdata[name].shape[0]:>4d} samples * {mdata[name].shape[1]:>4d} features")
+print(f"\nClinical data  : {mdata.obs.shape[0]} rows * {mdata.obs.shape[1]} columns")
 ```
 
     Omics sources loaded:
+      rna          100 samples *  131 features
       protein      100 samples *  160 features
-      gene_exp     100 samples *  131 features
       methyl       100 samples *  367 features
 
     Clinical data  : 100 rows * 4 columns
@@ -159,7 +159,7 @@ print(f"\nClinical data  : {clinical_df.shape[0]} rows * {clinical_df.shape[1]} 
 ```python
 # Class distribution — the label we will train the classifier on.
 print("\n=== Label distribution (cluster.id) ===")
-counts = clinical_df["cluster.id"].value_counts().sort_index()
+counts = mdata.obs["cluster.id"].value_counts().sort_index()
 print(counts.to_string())
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
@@ -169,7 +169,7 @@ axes[0].set_xlabel("Cluster ID (subtype)")
 axes[0].set_ylabel("Count")
 axes[0].tick_params(axis="x", rotation=0)
 
-clinical_df["OS.time"].hist(bins=20, ax=axes[1], color="coral", edgecolor="white")
+mdata.obs["OS.time"].hist(bins=20, ax=axes[1], color="coral", edgecolor="white")
 axes[1].set_title("Overall survival time distribution")
 axes[1].set_xlabel("Days")
 plt.tight_layout()
@@ -194,9 +194,9 @@ plt.show()
 
 
 ```python
-# get_common_samples returns the intersection of index values across all DataFrames.
+# get_shared_samples returns the intersection of sample IDs across all modalities.
 # This ensures every downstream step uses exactly the same set of sample IDs.
-lt_samples = customics.get_common_samples(list(omics_df.values()) + [clinical_df])
+lt_samples = customics.get_shared_samples(mdata)
 print(f"Samples present in ALL sources and clinical data: {len(lt_samples)}")
 print(f"First 5 sample IDs: {lt_samples[:5]}")
 ```
@@ -210,8 +210,8 @@ print(f"First 5 sample IDs: {lt_samples[:5]}")
 ## 2. Splitting the Data
 
 We split the full cohort into **train / validation / test** sets.
-`get_sub_mudata` applies the same sample selection to all sources simultaneously,
-keeping every dictionary in sync.
+`get_sub_mudata` applies the same sample selection to all modalities simultaneously,
+keeping the `MuData` object in sync.
 
 
 
@@ -231,17 +231,25 @@ print(f"Test  : {len(samples_test):>3d} samples")
 
 
 ```python
-# get_sub_mudata returns a new dict where each DataFrame is filtered to the given samples.
-omics_train = customics.get_sub_mudata(omics_df, samples_train)
-omics_val = customics.get_sub_mudata(omics_df, samples_val)
-omics_test = customics.get_sub_mudata(omics_df, samples_test)
+# get_sub_mudata returns a new MuData filtered to the given sample IDs.
+mdata_train = customics.get_sub_mudata(mdata, samples_train)
+mdata_val   = customics.get_sub_mudata(mdata, samples_val)
+mdata_test  = customics.get_sub_mudata(mdata, samples_test)
+
+# prepare_input validates clinical columns and registers them in mdata.uns
+# so fit() and evaluate() can find them without repeating column names each time.
+label, event, surv_time = "cluster.id", "OS", "OS.time"
+customics.prepare_input(mdata_train, label, event, surv_time)
+customics.prepare_input(mdata_val,   label, event, surv_time)
+customics.prepare_input(mdata_test,  label, event, surv_time)
+customics.prepare_input(mdata,       label, event, surv_time)
 
 # Record input dimensions per source — used to configure the autoencoders below.
-x_dim = {source: df.shape[1] for source, df in omics_df.items()}
+x_dim = {mod: mdata[mod].shape[1] for mod in mdata.mod}
 print("Feature dimensions per source:", x_dim)
 ```
 
-    Feature dimensions per source: {'protein': 160, 'gene_exp': 131, 'methyl': 367}
+    Feature dimensions per source: {'rna': 131, 'protein': 160, 'methyl': 367}
 
 
 ---
@@ -311,12 +319,6 @@ Maps **z** → log-hazard score. Set `lambda = 0` to disable.
 
 
 ```python
-# ── Clinical column names ────────────────────────────────────────────────────
-label = "cluster.id"  # tumour subtype (1–5)
-event = "OS"  # event indicator: 1 = event occurred, 0 = censored
-surv_time = "OS.time"  # time-to-event in days
-task = "classification"
-
 # ── Training schedule ─────────────────────────────────────────────────────────
 batch_size = 32
 n_epochs = 30  # 30 epochs is enough for the 100-sample toy dataset
@@ -379,8 +381,8 @@ print(
 )
 ```
 
-    source_params keys : ['protein', 'gene_exp', 'methyl']
-    input dimensions   : {'protein': 160, 'gene_exp': 131, 'methyl': 367}
+    source_params keys : ['rna', 'protein', 'methyl']
+    input dimensions   : {'rna': 131, 'protein': 160, 'methyl': 367}
     central latent dim : 64
     training phases    : phase 1 → epochs 0–14, phase 2 → epochs 15–29
 
@@ -413,15 +415,11 @@ print(f"Total trainable parameters: {model.get_number_parameters():,}")
 
 
 ```python
-# fit() returns self, so it can be chained.
+# fit() reads label/event/surv_time from mdata.uns (registered by prepare_input above).
 # omics_val triggers validation loss logging after each epoch.
 model.fit(
-    omics_train=omics_train,
-    clinical_df=clinical_df,
-    label=label,
-    event=event,
-    surv_time=surv_time,
-    omics_val=omics_val,
+    mdata=mdata_train,
+    omics_val=mdata_val,
     batch_size=batch_size,
     n_epochs=n_epochs,
     verbose=True,
@@ -478,14 +476,14 @@ model.fit(
                   (0): Linear(in_features=160, out_features=256, bias=True)
                   (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
                   (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (Layer1): FullyConnectedLayer(
                 (fc_block): Sequential(
                   (0): Linear(in_features=256, out_features=128, bias=True)
                   (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (OutputLayer): FullyConnectedLayer(
@@ -502,14 +500,14 @@ model.fit(
                   (0): Linear(in_features=64, out_features=128, bias=True)
                   (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
                   (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (Layer1): FullyConnectedLayer(
                 (fc_block): Sequential(
                   (0): Linear(in_features=128, out_features=256, bias=True)
                   (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (OutputLayer): FullyConnectedLayer(
@@ -528,14 +526,14 @@ model.fit(
                   (0): Linear(in_features=131, out_features=256, bias=True)
                   (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
                   (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (Layer1): FullyConnectedLayer(
                 (fc_block): Sequential(
                   (0): Linear(in_features=256, out_features=128, bias=True)
                   (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (OutputLayer): FullyConnectedLayer(
@@ -552,14 +550,14 @@ model.fit(
                   (0): Linear(in_features=64, out_features=128, bias=True)
                   (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
                   (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (Layer1): FullyConnectedLayer(
                 (fc_block): Sequential(
                   (0): Linear(in_features=128, out_features=256, bias=True)
                   (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (OutputLayer): FullyConnectedLayer(
@@ -578,14 +576,14 @@ model.fit(
                   (0): Linear(in_features=367, out_features=256, bias=True)
                   (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
                   (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (Layer1): FullyConnectedLayer(
                 (fc_block): Sequential(
                   (0): Linear(in_features=256, out_features=128, bias=True)
                   (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (OutputLayer): FullyConnectedLayer(
@@ -602,14 +600,14 @@ model.fit(
                   (0): Linear(in_features=64, out_features=128, bias=True)
                   (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
                   (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (Layer1): FullyConnectedLayer(
                 (fc_block): Sequential(
                   (0): Linear(in_features=128, out_features=256, bias=True)
                   (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
                 )
               )
               (OutputLayer): FullyConnectedLayer(
@@ -636,7 +634,7 @@ model.fit(
               (fc_block): Sequential(
                 (0): Linear(in_features=256, out_features=128, bias=True)
                 (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                (2): LeakyReLU(negative_slope=0.2, inplace=False)
               )
             )
           )
@@ -665,7 +663,7 @@ model.fit(
               (fc_block): Sequential(
                 (0): Linear(in_features=128, out_features=256, bias=True)
                 (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                (2): LeakyReLU(negative_slope=0.2, inplace=True)
+                (2): LeakyReLU(negative_slope=0.2, inplace=False)
               )
             )
             (OutputLayer): FullyConnectedLayer(
@@ -752,12 +750,9 @@ model.plot_loss()
 
 ```python
 # Evaluate tumour-subtype classification on the test split.
+# label/event/surv_time are read from mdata_test.uns (registered by prepare_input).
 metrics = model.evaluate(
-    omics_test=omics_test,
-    clinical_df=clinical_df,
-    label=label,
-    event=event,
-    surv_time=surv_time,
+    mdata=mdata_test,
     task="classification",
     batch_size=1024,
     plot_roc=True,
@@ -789,11 +784,7 @@ for k, v in metrics.items():
 # With synthetic OS/OS.time the C-index will be ~0.5 (random), which is expected.
 # Replace OS/OS.time with real data to obtain meaningful survival performance.
 surv_metrics = model.evaluate(
-    omics_test=omics_test,
-    clinical_df=clinical_df,
-    label=label,
-    event=event,
-    surv_time=surv_time,
+    mdata=mdata_test,
     task="survival",
     batch_size=1024,
 )
@@ -811,7 +802,7 @@ print("C-index :", surv_metrics)
 
 ## 6. Visualising the Latent Space
 
-`get_latent_representation()` encodes every sample in `omics_df` through the
+`get_latent_representation()` encodes every sample in `mdata` through the
 trained central VAE and returns a NumPy array of shape `(n_samples, latent_dim)`.
 
 `plot_representation()` runs t-SNE on that array and colours each point by the
@@ -824,7 +815,7 @@ features.
 from pathlib import Path
 
 # Get the latent embedding for ALL samples (train + val + test combined).
-z = model.get_latent_representation(omics_df)
+z = model.get_latent_representation(mdata)
 print(f"Latent space shape: {z.shape}  (n_samples × latent_dim)")
 
 
@@ -833,8 +824,7 @@ RESULTS_DIR = Path("results")
 RESULTS_DIR.mkdir(exist_ok=True)
 
 model.plot_representation(
-    omics_df=omics_df,
-    clinical_df=clinical_df,
+    mdata=mdata,
     label=label,
     filename=RESULTS_DIR / "latent_representation",
     title="t-SNE of the integrated latent space",
@@ -865,8 +855,7 @@ Kaplan-Meier curve.
 
 ```python
 model.stratify(
-    omics_df=omics_df,
-    clinical_df=clinical_df,
+    mdata=mdata,
     event=event,
     surv_time=surv_time,
     save_path="results/km_stratification",
@@ -889,16 +878,15 @@ one omics source and one tumour subtype.
 
 **Parameters:**
 
-| Parameter     | Description                                                           |
-| ------------- | --------------------------------------------------------------------- |
-| `sample_id`   | List of sample IDs to explain                                         |
-| `omics_df`    | Full omics dictionary                                                 |
-| `clinical_df` | Clinical metadata                                                     |
-| `source`      | Which omics source to explain (`"gene_exp"`, `"protein"`, `"methyl"`) |
-| `subtype`     | Integer label of the class to explain (1-based here)                  |
-| `label`       | Column in `clinical_df` containing the class labels                   |
-| `device`      | `"cpu"` or `"cuda"`                                                   |
-| `show`        | Display the SHAP summary plot inline                                  |
+| Parameter   | Description                                                      |
+| ----------- | ---------------------------------------------------------------- |
+| `sample_id` | List of sample IDs to explain                                    |
+| `mdata`     | Full `MuData` object                                             |
+| `source`    | Which omics source to explain (`"rna"`, `"protein"`, `"methyl"`) |
+| `subtype`   | Integer label of the class to explain (1-based here)             |
+| `label`     | Column in `mdata.obs` containing the class labels                |
+| `device`    | `"cpu"` or `"cuda"`                                              |
+| `show`      | Display the SHAP summary plot inline                             |
 
 The bar plot shows the **mean absolute SHAP value** for each feature — higher
 means more influential for predicting the chosen subtype.
@@ -906,12 +894,11 @@ means more influential for predicting the chosen subtype.
 
 
 ```python
-# Feature importance for gene expression → subtype 1
+# Feature importance for RNA expression → subtype 1
 model.explain(
     sample_id=lt_samples,
-    omics_df=omics_df,
-    clinical_df=clinical_df,
-    source="gene_exp",
+    mdata=mdata,
+    source="rna",
     subtype=1,
     label=label,
     device="cpu",
@@ -919,14 +906,17 @@ model.explain(
 )
 ```
 
-> **Note:** output not shown — `explain()` has a known bug being fixed separately.
+
+
+![png](usage_files/shap_rna_1.png)
+
+
 
 ```python
 # Feature importance for protein expression → subtype 1
 model.explain(
     sample_id=lt_samples,
-    omics_df=omics_df,
-    clinical_df=clinical_df,
+    mdata=mdata,
     source="protein",
     subtype=1,
     label=label,
@@ -935,14 +925,17 @@ model.explain(
 )
 ```
 
-> **Note:** output not shown — `explain()` has a known bug being fixed separately.
+
+
+![png](usage_files/shap_protein_1.png)
+
+
 
 ```python
 # Feature importance for DNA methylation → subtype 1
 model.explain(
     sample_id=lt_samples,
-    omics_df=omics_df,
-    clinical_df=clinical_df,
+    mdata=mdata,
     source="methyl",
     subtype=1,
     label=label,
@@ -951,7 +944,9 @@ model.explain(
 )
 ```
 
-> **Note:** output not shown — `explain()` has a known bug being fixed separately.
+
+
+![png](usage_files/shap_methyl_1.png)
 
 ---
 
@@ -992,11 +987,7 @@ print(f"Parameters in loaded model: {loaded_model.get_number_parameters():,}")
 ```python
 # Sanity-check: predictions from the reloaded model should match the originals.
 metrics_reloaded = loaded_model.evaluate(
-    omics_test=omics_test,
-    clinical_df=clinical_df,
-    label=label,
-    event=event,
-    surv_time=surv_time,
+    mdata=mdata_test,
     task="classification",
     batch_size=1024,
     plot_roc=False,
