@@ -612,7 +612,7 @@ class CustOMICS(nn.Module):
         mdata: MuData,
         source: str,
         subtype: str,
-        device: str = "cpu",
+        device: str | None = None,
         show: bool = False,
     ) -> None:
         """Compute and plot SHAP values for one omics source and one subtype.
@@ -643,6 +643,10 @@ class CustOMICS(nn.Module):
         )
 
         self._require_fitted()
+
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         expr_df = mdata[source].to_df()
         sample_id = list(set(sample_id) & set(expr_df.index))
         phenotype = process_phenotype_data_for_samples(mdata.obs, sample_id, self.label_encoder)
