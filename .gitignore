@@ -1,6 +1,7 @@
 # Other
 .DS_Store
 sandbox/
+*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

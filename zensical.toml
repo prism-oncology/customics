@@ -19,7 +19,7 @@ nav = [
    ] },
    { "Tutorials" = [
       "tutorials/usage.md",
-      "hyperparameter_tuning.md",
+      "tutorials/hyperparameter_tuning.md",
    ] },
    { "Cite us" = "citation.md" },
 ]

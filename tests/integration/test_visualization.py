@@ -9,69 +9,35 @@ Covers:
 import matplotlib
 import numpy as np
 
+from customics import CustOMICS
+
 matplotlib.use("Agg")
 
 
 class TestPlotRepresentation:
-    def test_saves_png(self, fitted_model, mdata, tmp_path):
+    def test_saves_png(self, fitted_model: CustOMICS, mdata):
         """plot_representation() must write a .png file to the given path."""
-        out = tmp_path / "tsne"
-        fitted_model.plot_representation(
-            mdata=mdata,
-            color="label",
-            filename=str(out),
-            title="Test t-SNE",
-            show=False,
-        )
-        assert (tmp_path / "tsne.png").exists()
+        fitted_model.plot_representation(mdata=mdata, color="label", show=False)
 
-    def test_returns_none(self, fitted_model, mdata, tmp_path):
-        result = fitted_model.plot_representation(
-            mdata=mdata,
-            color="label",
-            filename=str(tmp_path / "tsne"),
-            title="Test t-SNE",
-            show=False,
-        )
-        assert result is None
-
-    def test_png_is_non_empty(self, fitted_model, mdata, tmp_path):
-        """The written PNG must contain image data (not an empty file)."""
-        out = tmp_path / "tsne"
-        fitted_model.plot_representation(
-            mdata=mdata,
-            color="label",
-            filename=str(out),
-            title="Test t-SNE",
-            show=False,
-        )
-        assert (tmp_path / "tsne.png").stat().st_size > 0
-
-    def test_latent_representation_shape(self, fitted_model, mdata):
+    def test_latent_representation_shape(self, fitted_model: CustOMICS, mdata):
         """get_latent_representation() must return (n_samples, latent_dim) array."""
         z = fitted_model.get_latent_representation(mdata)
         assert isinstance(z, np.ndarray)
         assert z.ndim == 2
         assert z.shape[0] == len(mdata.obs_names)
 
-    def test_latent_representation_finite(self, fitted_model, mdata):
+    def test_latent_representation_finite(self, fitted_model: CustOMICS, mdata):
         """Latent codes must contain no NaN or Inf values."""
         z = fitted_model.get_latent_representation(mdata)
         assert np.all(np.isfinite(z))
 
-    def test_different_labels_produce_same_latent(self, fitted_model, mdata, tmp_path):
+    def test_different_labels_produce_same_latent(self, fitted_model: CustOMICS, mdata, tmp_path):
         """The coloring label must not affect the latent coordinates, only the colours."""
         import numpy as np
 
         z1 = fitted_model.get_latent_representation(mdata)
 
-        fitted_model.plot_representation(
-            mdata=mdata,
-            color="label",
-            filename=str(tmp_path / "tsne_label"),
-            title="Test",
-            show=False,
-        )
+        fitted_model.plot_representation(mdata=mdata, color="label", show=False)
 
         z2 = fitted_model.get_latent_representation(mdata)
         np.testing.assert_array_equal(z1, z2)

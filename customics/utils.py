@@ -4,7 +4,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from anndata import AnnData
 from mudata import MuData
 from sklearn.model_selection import KFold, train_test_split
@@ -12,14 +11,6 @@ from sklearn.model_selection import KFold, train_test_split
 from customics.exceptions import DataValidationError
 
 from ._constants import Keys
-
-sns.set_style("darkgrid")
-sns.set_palette("muted")
-sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
-
-# ---------------------------------------------------------------------------
-# Toy dataset loader
-# ---------------------------------------------------------------------------
 
 
 def toy_dataset() -> MuData:
@@ -49,6 +40,7 @@ def toy_dataset() -> MuData:
     })
 
     mdata.obs = clinical_df
+    mdata.obs["cluster.id"] = mdata.obs["cluster.id"].astype(str)
 
     return mdata
 
