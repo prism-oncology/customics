@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import matplotlib.pyplot as plt
 import numpy as np
 import scanpy as sc
+import seaborn as sns
 from anndata import AnnData
 from mudata import MuData
 
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from customics import CustOMICS
 
 
-def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: bool = True) -> None:
+def plot_loss(history: list, switch_epoch: int, figsize: tuple[float, float], show: bool = True) -> None:
     """Plot training (and optional validation) loss curves.
 
     Args:
@@ -44,6 +45,9 @@ def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: 
     plt.xlabel("epoch")
     plt.ylabel("loss")
     plt.legend()
+    sns.despine(offset=10, trim=True)
+    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0, frameon=False)
+
     if show:
         plt.show()
 
@@ -113,6 +117,8 @@ def plot_survival_stratification(
     kmf_low.plot()
     kmf_high.plot()
     plt.title(f"Survival stratification (p-value = {p_value:.3g})")
+    sns.despine(offset=10, trim=True)
+    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0, frameon=False)
 
     if show:
         plt.show()

@@ -520,6 +520,7 @@ class CustOMICS(nn.Module):
         task: str,
         batch_size: int = 32,
         plot_roc: bool = False,
+        figsize: tuple[float, float] = (4, 3),
     ) -> float | dict[str, float]:
         """Evaluate the model on held-out data.
 
@@ -528,6 +529,7 @@ class CustOMICS(nn.Module):
             task: `'classification'` or `'survival'`.
             batch_size: Evaluation batch size.
             plot_roc: Save a ROC curve image (classification only).
+            figsize: Figure size for the ROC curve.
 
         Returns:
             Concordance index (float) for `task='survival'`, or a metrics dict
@@ -596,6 +598,7 @@ class CustOMICS(nn.Module):
                 filename="test",
                 n_classes=self.num_classes,
                 var_names=np.unique(mdata.obs[label].values.tolist()).tolist(),
+                figsize=figsize,
             )
 
         return multi_classification_evaluation(y_true, y_pred, y_proba, ohe=self.one_hot_encoder)
@@ -698,15 +701,16 @@ class CustOMICS(nn.Module):
         """
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
-    def plot_loss(self, show: bool = True) -> None:
+    def plot_loss(self, show: bool = True, figsize: tuple[float, float] = (6, 3)) -> None:
         """Plot training (and validation) loss history.
 
         Args:
             show: Display the figure interactively.
+            figsize: Figure size.
         """
         from customics.visualization import plot_loss as _plot
 
-        _plot(self.history, self.switch_epoch, show=show)
+        _plot(self.history, self.switch_epoch, show=show, figsize=figsize)
 
     def plot_representation(self, mdata: MuData, color: str | None = None, show: bool = True) -> None:
         """Compute latent representations and save a t-SNE scatter plot.
