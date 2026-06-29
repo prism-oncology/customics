@@ -6,6 +6,8 @@ on:
       - v*
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "0 0 * * 1,3,5"
 
 permissions:
   contents: write
@@ -27,7 +29,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +61,6 @@ jobs:
       - name: Run short tests
         run: poe test_no_multimodal
 
-
   deploy-docs:
     needs: [tests, test_pip_install]
     if: contains(github.ref, 'tags')
@@ -88,60 +89,19 @@ jobs:
           artifact_name: github-pages-${{ github.run_id }}
 
   pypi-release:
-      needs: [tests, test_pip_install]
-      if: contains(github.ref, 'tags')
-      name: "TestPyPI release"
-      runs-on: ubuntu-latest
-
-      steps:
-        - uses: actions/checkout@v4
-
-        - name: Set up the environment
-          uses: ./.github/actions/setup-python-env
-          with:
-            python-version: "3.12"
-
-        - name: Build
-          run: uv build
-
-        - name: Publish to TestPyPI
-          run: uv publish dist/* \
-            --publish-url https://test.pypi.org/legacy/ \
-            -t ${{ secrets.TEST_PYPI_TOKEN }}
-
-
-  docker-images-release:
-    needs: [pypi-release]
+    needs: [tests, test_pip_install]
     if: contains(github.ref, 'tags')
-    name: "Docker images release"
+    name: "PyPI release"
     runs-on: ubuntu-latest
 
     steps:
-      - name: Export tag version
-        run: |
-          TAG="${GITHUB_REF#refs/tags/v}"
-          echo "VERSION=$TAG" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
 
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Set up the environment
+        uses: ./.github/actions/setup-python-env
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build
+        run: uv build
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ vars.DOCKERHUB_USERNAME }}/customics:${{ env.VERSION }}
-            ${{ vars.DOCKERHUB_USERNAME }}/customics:latest
-          context: ./docker/customics
-          build-args: |
-            NOVAE_VERSION=${{ env.VERSION }}
+      - name: Publish
+        run: uv publish -t ${{ secrets.PYPI_TOKEN }}

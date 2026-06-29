@@ -1,0 +1,74 @@
+"""Standard (deterministic) encoder network."""
+
+from collections import OrderedDict
+
+import torch
+import torch.nn as nn
+
+from .. import FullyConnectedLayer
+
+
+class Encoder(nn.Module):
+    """Deterministic encoder that maps high-dimensional input to a latent vector.
+
+    Architecture: `InputLayer → [HiddenLayers...] → OutputLayer`
+    where each hidden layer is a `customics.tools.net_utils.FullyConnectedLayer`.
+
+    Args:
+        input_dim: Dimension of the input tensor.
+        hidden_dim: Sizes of intermediate hidden layers.
+        latent_dim: Dimension of the output latent representation.
+        norm_layer: Normalization layer class or `True` for `nn.BatchNorm1d`.
+        leaky_slope: Negative slope for LeakyReLU activations.
+        dropout: Dropout rate (0 = disabled).
+    """
+
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: list[int],
+        latent_dim: int,
+        norm_layer: type | bool = nn.BatchNorm1d,
+        leaky_slope: float = 0.2,
+        dropout: float = 0.0,
+    ) -> None:
+        super().__init__()
+        layers: OrderedDict[str, nn.Module] = OrderedDict()
+        layers["InputLayer"] = FullyConnectedLayer(
+            input_dim,
+            hidden_dim[0],
+            norm_layer=norm_layer,
+            leaky_slope=leaky_slope,
+            dropout=dropout,
+            activation=True,
+        )
+        for i in range(1, len(hidden_dim)):
+            layers[f"Layer{i}"] = FullyConnectedLayer(
+                hidden_dim[i - 1],
+                hidden_dim[i],
+                norm_layer=norm_layer,
+                leaky_slope=leaky_slope,
+                dropout=dropout if i % 2 == 0 else 0.0,
+                activation=True,
+            )
+        layers["OutputLayer"] = FullyConnectedLayer(
+            hidden_dim[-1],
+            latent_dim,
+            norm_layer=norm_layer,
+            leaky_slope=leaky_slope,
+            dropout=0.0,
+            activation=False,
+            normalization=False,
+        )
+        self.net = nn.Sequential(layers)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Encode `x` to a latent vector.
+
+        Args:
+            x: Input tensor, shape (batch, input_dim).
+
+        Returns:
+            Latent tensor, shape (batch, latent_dim).
+        """
+        return self.net(x)

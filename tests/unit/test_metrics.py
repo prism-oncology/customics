@@ -4,8 +4,7 @@ import numpy as np
 import pytest
 from sklearn.preprocessing import OneHotEncoder
 
-from customics.metrics.classification import multi_classification_evaluation
-from customics.metrics.survival import CIndex_lifeline, cox_log_rank, accuracy_cox
+from customics.metrics import CIndex_lifeline, accuracy_cox, cox_log_rank, multi_classification_evaluation
 
 
 class TestClassificationMetrics:
@@ -19,22 +18,16 @@ class TestClassificationMetrics:
         self.ohe = OneHotEncoder(sparse_output=False).fit(self.y_true.reshape(-1, 1))
 
     def test_returns_all_keys(self):
-        scores = multi_classification_evaluation(
-            self.y_true, self.y_pred, self.y_proba, ohe=self.ohe
-        )
+        scores = multi_classification_evaluation(self.y_true, self.y_pred, self.y_proba, ohe=self.ohe)
         for key in ("Accuracy", "F1-score", "Precision", "Recall", "AUC"):
             assert key in scores
 
     def test_perfect_accuracy(self):
-        scores = multi_classification_evaluation(
-            self.y_true, self.y_true, self.y_proba, ohe=self.ohe
-        )
+        scores = multi_classification_evaluation(self.y_true, self.y_true, self.y_proba, ohe=self.ohe)
         assert scores["Accuracy"] == pytest.approx(1.0)
 
     def test_values_in_range(self):
-        scores = multi_classification_evaluation(
-            self.y_true, self.y_pred, self.y_proba, ohe=self.ohe
-        )
+        scores = multi_classification_evaluation(self.y_true, self.y_pred, self.y_proba, ohe=self.ohe)
         for key in ("Accuracy", "F1-score", "Precision", "Recall", "AUC"):
             assert 0.0 <= scores[key] <= 1.0
 

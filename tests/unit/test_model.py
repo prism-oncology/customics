@@ -3,12 +3,8 @@
 import pytest
 import torch
 
-from customics import CustOMICS
-from customics.exceptions import (
-    ConfigurationError,
-    DataValidationError,
-    ModelNotFittedError,
-)
+from customics import CustOMICS, prepare_input
+from customics.exceptions import ConfigurationError, DataValidationError, ModelNotFittedError
 
 
 class TestCustOMICSInstantiation:
@@ -88,11 +84,9 @@ class TestCustOMICSInstantiation:
         )
         state = model.state_dict()
         # At least one key should belong to the autoencoders
-        assert any("autoencoders" in k for k in state.keys())
+        assert any("autoencoders" in k for k in state)
 
-    def test_invalid_dropout_raises(
-        self, central_params, classif_params, surv_params, train_params, device
-    ):
+    def test_invalid_dropout_raises(self, central_params, classif_params, surv_params, train_params, device):
         bad_source = {
             "rna": {
                 "input_dim": 50,
@@ -112,9 +106,7 @@ class TestCustOMICSInstantiation:
                 device,
             )
 
-    def test_missing_n_class_raises(
-        self, source_params, central_params, surv_params, train_params, device
-    ):
+    def test_missing_n_class_raises(self, source_params, central_params, surv_params, train_params, device):
         bad_classif = {
             "n_class": 1,
             "lambda": 1.0,
@@ -139,7 +131,7 @@ class TestCustOMICSInstantiation:
         surv_params,
         train_params,
         device,
-        omics_df,
+        mdata,
     ):
         model = CustOMICS(
             source_params,
@@ -150,20 +142,12 @@ class TestCustOMICSInstantiation:
             device,
         )
         with pytest.raises(ModelNotFittedError):
-            model.predict(omics_df)
+            model.predict(mdata)
 
 
 class TestCustOMICSFit:
     def test_fit_returns_self(
-        self,
-        source_params,
-        central_params,
-        classif_params,
-        surv_params,
-        train_params,
-        device,
-        omics_df,
-        clinical_df,
+        self, source_params, central_params, classif_params, surv_params, train_params, device, mdata
     ):
         model = CustOMICS(
             source_params,
@@ -173,27 +157,16 @@ class TestCustOMICSFit:
             train_params,
             device,
         )
+        prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
         result = model.fit(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mdata,
             n_epochs=2,
             batch_size=8,
         )
         assert result is model
 
     def test_history_populated(
-        self,
-        source_params,
-        central_params,
-        classif_params,
-        surv_params,
-        train_params,
-        device,
-        omics_df,
-        clinical_df,
+        self, source_params, central_params, classif_params, surv_params, train_params, device, mdata
     ):
         model = CustOMICS(
             source_params,
@@ -203,12 +176,9 @@ class TestCustOMICSFit:
             train_params,
             device,
         )
+        prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
         model.fit(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mdata,
             n_epochs=3,
             batch_size=8,
         )
@@ -222,8 +192,7 @@ class TestCustOMICSFit:
         surv_params,
         train_params,
         device,
-        omics_df,
-        clinical_df,
+        mdata,
     ):
         model = CustOMICS(
             source_params,
@@ -234,38 +203,47 @@ class TestCustOMICSFit:
             device,
         )
         with pytest.raises(DataValidationError, match="not found"):
-            model.fit(
-                omics_df,
-                clinical_df,
-                label="nonexistent",
-                event="OS",
-                surv_time="OS.time",
-            )
+            prepare_input(mdata=mdata, label="nonexistent", event="OS", surv_time="OS.time")
+            model.fit(mdata)
 
 
 class TestCustOMICSInference:
-    def test_get_latent_shape(self, fitted_model, omics_df):
-        z = fitted_model.get_latent_representation(omics_df)
+    def test_get_latent_shape(self, fitted_model, mdata):
+        z = fitted_model.get_latent_representation(mdata)
         assert z.shape[0] == 20  # N_SAMPLES
 
-    def test_predict_shape(self, fitted_model, omics_df):
-        preds = fitted_model.predict(omics_df)
+    def test_get_latent_invariant_to_modality_order(self, fitted_model, rna_df, cnv_df, clinical_df):
+        # Rows are realigned to get_shared_samples, so shuffling one modality's
+        # row order must not change the latent representation.
+        import numpy as np
+        from anndata import AnnData
+        from mudata import MuData
+
+        base = MuData({"rna": AnnData(rna_df), "cnv": AnnData(cnv_df)})
+        base.obs = clinical_df
+        prepare_input(mdata=base, label="label", event="OS", surv_time="OS.time")
+
+        shuffled = MuData({"rna": AnnData(rna_df.iloc[::-1]), "cnv": AnnData(cnv_df)})
+        shuffled.obs = clinical_df
+        prepare_input(mdata=shuffled, label="label", event="OS", surv_time="OS.time")
+
+        np.testing.assert_allclose(
+            fitted_model.get_latent_representation(base),
+            fitted_model.get_latent_representation(shuffled),
+        )
+
+    def test_predict_shape(self, fitted_model, mdata):
+        preds = fitted_model.predict(mdata)
         assert preds.shape == (20,)
 
-    def test_predict_classes_valid(self, fitted_model, omics_df):
-        preds = fitted_model.predict(omics_df)
+    def test_predict_classes_valid(self, fitted_model, mdata):
+        preds = fitted_model.predict(mdata)
         assert preds.min() >= 0
         assert preds.max() < 3  # N_CLASSES
 
-    def test_evaluate_classification_returns_dict(
-        self, fitted_model, omics_df, clinical_df
-    ):
+    def test_evaluate_classification_returns_dict(self, fitted_model, mdata):
         result = fitted_model.evaluate(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mdata,
             task="classification",
             batch_size=8,
         )
@@ -273,26 +251,18 @@ class TestCustOMICSInference:
         assert "Accuracy" in result
         assert 0.0 <= result["Accuracy"] <= 1.0
 
-    def test_evaluate_survival_returns_float(self, fitted_model, omics_df, clinical_df):
+    def test_evaluate_survival_returns_float(self, fitted_model, mdata):
         result = fitted_model.evaluate(
-            omics_df,
-            clinical_df,
-            label="label",
-            event="OS",
-            surv_time="OS.time",
+            mdata,
             task="survival",
             batch_size=8,
         )
         assert isinstance(result, float)
         assert 0.0 <= result <= 1.0
 
-    def test_invalid_task_raises(self, fitted_model, omics_df, clinical_df):
+    def test_invalid_task_raises(self, fitted_model, mdata):
         with pytest.raises(ValueError, match="task must be"):
             fitted_model.evaluate(
-                omics_df,
-                clinical_df,
-                label="label",
-                event="OS",
-                surv_time="OS.time",
+                mdata,
                 task="regression",
             )

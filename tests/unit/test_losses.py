@@ -4,9 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from customics.loss.classification_loss import classification_loss
-from customics.loss.mmd_loss import compute_kernel, compute_mmd
-from customics.loss.survival_loss import CoxLoss
+from customics.loss import CoxLoss, classification_loss, compute_kernel, compute_mmd
 
 
 class TestClassificationLoss:
@@ -25,9 +23,7 @@ class TestClassificationLoss:
 
     def test_unknown_loss_raises(self):
         with pytest.raises(ValueError, match="not supported"):
-            classification_loss(
-                "MSE", torch.randn(4, 2), torch.zeros(4, dtype=torch.long)
-            )
+            classification_loss("MSE", torch.randn(4, 2), torch.zeros(4, dtype=torch.long))
 
     def test_gradients_flow(self):
         logits = torch.randn(8, 3, requires_grad=True)

@@ -4,11 +4,15 @@ All fixtures use tiny synthetic data so tests run fast on CPU without any
 external files.
 """
 
+import mudata
 import numpy as np
 import pandas as pd
 import pytest
 import torch
+from anndata import AnnData
+from mudata import MuData
 
+mudata.set_options(pull_on_update=False)
 
 N_SAMPLES = 20
 N_FEATURES_RNA = 50
@@ -26,23 +30,14 @@ def sample_ids():
 def rna_df(sample_ids):
     rng = np.random.default_rng(42)
     data = rng.random((N_SAMPLES, N_FEATURES_RNA)).astype(np.float32)
-    return pd.DataFrame(
-        data, index=sample_ids, columns=[f"gene_{i}" for i in range(N_FEATURES_RNA)]
-    )
+    return pd.DataFrame(data, index=sample_ids, columns=[f"gene_{i}" for i in range(N_FEATURES_RNA)])
 
 
 @pytest.fixture(scope="session")
 def cnv_df(sample_ids):
     rng = np.random.default_rng(43)
     data = rng.random((N_SAMPLES, N_FEATURES_CNV)).astype(np.float32)
-    return pd.DataFrame(
-        data, index=sample_ids, columns=[f"cnv_{i}" for i in range(N_FEATURES_CNV)]
-    )
-
-
-@pytest.fixture(scope="session")
-def omics_df(rna_df, cnv_df):
-    return {"rna": rna_df, "cnv": cnv_df}
+    return pd.DataFrame(data, index=sample_ids, columns=[f"cnv_{i}" for i in range(N_FEATURES_CNV)])
 
 
 @pytest.fixture(scope="session")
@@ -58,6 +53,13 @@ def clinical_df(sample_ids):
         },
         index=sample_ids,
     )
+
+
+@pytest.fixture(scope="session")
+def mdata(rna_df, cnv_df, clinical_df):
+    mdata = MuData({"rna": AnnData(rna_df), "cnv": AnnData(cnv_df)})
+    mdata.obs = clinical_df
+    return mdata
 
 
 @pytest.fixture(scope="session")
@@ -124,17 +126,8 @@ def device():
 
 
 @pytest.fixture(scope="session")
-def fitted_model(
-    source_params,
-    central_params,
-    classif_params,
-    surv_params,
-    train_params,
-    device,
-    omics_df,
-    clinical_df,
-):
-    from customics import CustOMICS
+def fitted_model(source_params, central_params, classif_params, surv_params, train_params, device, mdata):
+    from customics import CustOMICS, prepare_input
 
     model = CustOMICS(
         source_params=source_params,
@@ -144,12 +137,11 @@ def fitted_model(
         train_params=train_params,
         device=device,
     )
+
+    prepare_input(mdata=mdata, label="label", event="OS", surv_time="OS.time")
+
     model.fit(
-        omics_train=omics_df,
-        clinical_df=clinical_df,
-        label="label",
-        event="OS",
-        surv_time="OS.time",
+        mdata=mdata,
         n_epochs=3,
         batch_size=8,
         verbose=False,

@@ -1,8 +1,8 @@
 [project]
 site_name = "CustOmics"
-repo_name = "HakimBenkirane/CustOmics"
-repo_url = "https://github.com/HakimBenkirane/CustOmics"
-site_url = "https://github.com/HakimBenkirane/CustOmics"
+repo_name = "prism-oncology/customics"
+repo_url = "https://github.com/prism-oncology/customics"
+site_url = "https://github.com/prism-oncology/customics"
 site_description = "CustOmics Documentation"
 site_author = "Hakim Benkirane"
 copyright = "Copyright &copy; 2026 Hakim Benkirane"
@@ -10,32 +10,33 @@ extra_css = ["stylesheets/style.css"]
 
 
 nav = [
-  {"Home" = "index.md"},
-  {"Getting Started"= "getting_started.md"},
-  {"API"= [
-     "api/train.md",
-     "api/evaluate.md",
-     "api/visualise.md"
-  ]},
-  {"Tutorial"= [
-     "tutorials/example_notebook.md",
-  ]},
-  {"Cite us" = "citation.md"}
+   { "Home" = "index.md" },
+   { "Getting started" = "getting_started.md" },
+   { "API" = [
+      "api/train.md",
+      "api/evaluate.md",
+      "api/visualise.md",
+   ] },
+   { "Tutorials" = [
+      "tutorials/usage.md",
+      "hyperparameter_tuning.md",
+   ] },
+   { "Cite us" = "citation.md" },
 ]
 
 [project.theme]
 logo = "assets/customics_white.png"
-favicon = "assets/favicon.png"
+favicon = "assets/favicon-48.png"
 variant = "material"
 language = "en"
 
 features = [
-    "announce.dismiss",
-    "content.code.annotate",
-    "content.code.copy",
-    "content.code.select",
-    "search.highlight",
-    "navigation.footer",
+   "announce.dismiss",
+   "content.code.annotate",
+   "content.code.copy",
+   "content.code.select",
+   "search.highlight",
+   "navigation.footer",
 ]
 
 [project.theme.icon]
@@ -43,7 +44,7 @@ repo = "fontawesome/brands/git-alt"
 
 [[project.theme.palette]]
 scheme = "default"
-primary =  "indigo"
+primary = "indigo"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
@@ -62,11 +63,11 @@ enabled = true
 [project.plugins.mkdocstrings.handlers.python.options]
 inherited_members = true
 show_source = true
-show_root_heading= true
-heading_level= 4
-docstring_style = "numpy"
+show_root_heading = true
+heading_level = 4
+docstring_style = "google"
 docstring_section_style = "table"
 
 [project.plugins.mkdocstrings.handlers.python]
 inventories = ["https://docs.python.org/3/objects.inv"]
-paths = ["src"]
+paths = ["customics"]

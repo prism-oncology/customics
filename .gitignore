@@ -1,3 +1,7 @@
+# Other
+.DS_Store
+sandbox/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -132,9 +136,6 @@ dmypy.json
 
 # Claude Code
 .claude/
-
-# GitHub Actions
-.github/
 
 # Results / outputs
 results/
