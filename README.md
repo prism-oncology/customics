@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/prism-oncology/customics/main/docs/assets/customics.png" alt="customics_logo" width="300"/>
+  <img src="./docs/assets/customics.png" alt="customics_logo" width="300"/>
 </p>
 <p align="center"><b><i>
 	CustOmics: a versatile deep-learning based strategy for multi-omics integration
@@ -15,9 +15,13 @@
 
 </div>
 
-`customics` is a Python package for integrating multiple genomic data modalities (RNA-seq, CNV, DNA methylation, …) using a hierarchical deep-learning architecture. It supports classification, survival outcome prediction, and SHAP-based explainability — all in a single scikit-learn-style API.
+**Integrate RNA-seq, CNV, DNA methylation, and more into a single predictive model — with two lines of code.**
 
-It relies on [`mudata`](https://mudata.readthedocs.io/stable/), a core [scverse](https://scverse.org/) data structure for multimodal data.
+`customics` is a Python package for integrating multiple genomic data modalities using a hierarchical deep-learning architecture. It supports classification, survival outcome prediction, and SHAP-based explainability — all in a single scikit-learn-style API, built on [MuData](https://mudata.readthedocs.io/stable/) from [scverse](https://scverse.org/).
+
+## Documentation
+
+Check [customics's documentation](https://prism-oncology.github.io/customics/) to get started. It contains installation explanations, API details, and tutorials.
 
 ## Installation
 
@@ -27,89 +31,63 @@ It relies on [`mudata`](https://mudata.readthedocs.io/stable/), a core [scverse]
 pip install customics
 ```
 
-Or install from source:
+## Features
 
-```bash
-git clone https://github.com/prism-oncology/customics.git
-cd customics
-pip install -e .
-```
+- **Multi-omics integration** — a hierarchical architecture (per-source autoencoders feeding a central VAE) that fuses heterogeneous, high-dimensional modalities into a shared latent space.
+- **Built-in tasks** — tumor classification and survival prediction (Cox), with one scikit-learn-style `fit` / `predict` / `evaluate` API.
+- **Explainability** — per-source feature attribution via SHAP.
+- **Visualization** — latent-space projection (t-SNE) and Kaplan-Meier survival stratification out of the box.
 
-## Usage demo
+
+## Usage
+
 
 ```python
 import torch
-import pandas as pd
+import customics
 from customics import CustOMICS
 
-# --- 1. Prepare your data ---
-# omics_train: dict mapping source name → pd.DataFrame (samples × features)
-# clinical_df: pd.DataFrame with columns for labels, event indicator, and survival time
-omics_train = {
-    "rna":   pd.read_csv("rna_train.csv",   index_col=0),
-    "cnv":   pd.read_csv("cnv_train.csv",   index_col=0),
-    "methyl": pd.read_csv("methyl_train.csv", index_col=0),
-}
-clinical_df = pd.read_csv("clinical.csv", index_col=0)
+# --- 1. Load and prepare data ---
+# toy_dataset() returns a MuData object: one modality per omics source,
+# with clinical annotations in `.obs`.
+mdata = customics.toy_dataset()
+customics.prepare_input(
+    mdata,
+    label="PAM50",       # classification target column
+    event="OS",          # survival event column (0/1)
+    surv_time="OS.time", # survival time column
+)
 
-# --- 2. Configure the model ---
-source_params = {
-    "rna":   {"input_dim": 5000, "hidden_dim": [1024, 512], "latent_dim": 128, "norm": True, "dropout": 0.2},
-    "cnv":   {"input_dim": 2000, "hidden_dim": [512, 256],  "latent_dim": 128, "norm": True, "dropout": 0.2},
-    "methyl":{"input_dim": 8000, "hidden_dim": [1024, 512], "latent_dim": 128, "norm": True, "dropout": 0.2},
-}
-central_params = {"hidden_dim": [512, 256], "latent_dim": 128, "norm": True, "dropout": 0.2, "beta": 1}
-classif_params = {"n_class": 5, "lambda": 5.0, "hidden_layers": [128, 64], "dropout": 0.2}
-surv_params    = {"lambda": 1.0, "dims": [64, 32], "activation": "SELU",
-                  "l2_reg": 1e-2, "norm": True, "dropout": 0.2}
-train_params   = {"switch": 10, "lr": 1e-3}
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# --- 3. Train ---
+# --- 2. Instantiate the model ---
+# Each config dict tunes one component. See the configuration reference for the
+# full schema: https://prism-oncology.github.io/customics/hyperparameter_tuning/
 model = CustOMICS(
     source_params=source_params,
     central_params=central_params,
     classif_params=classif_params,
     surv_params=surv_params,
     train_params=train_params,
-    device=device,
-)
-# prepare inputs
-prepare_input(
-    mdata=mdata,
-    label="PAM50",       # classification target column
-    event="OS",          # survival event column (0/1)
-    surv_time="OS.time", # survival time column
-)
-model.fit(
-    mdata=mdata,
-    omics_val=omics_val, # optional validation set
-    batch_size=32,
-    n_epochs=30,
-    verbose=True,
+    device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
 )
 
+# --- 3. Train ---
+model.fit(mdata, batch_size=32, n_epochs=30, verbose=True)
+
 # --- 4. Evaluate ---
-# Classification metrics (Accuracy, F1, AUC, …)
-metrics = model.evaluate(
-    mdata,
-    task="classification",
-)
-# Survival concordance index
-ci = model.evaluate(
-    mdata,
-    task="survival",
-)
+metrics = model.evaluate(mdata, task="classification")  # Accuracy, F1, AUC, …
+ci = model.evaluate(mdata, task="survival")             # concordance index
 
 # --- 5. Visualise & explain ---
 model.plot_loss()
 model.plot_representation(mdata, label="PAM50",
                           filename="latent_space", title="t-SNE of latent space")
-model.stratify(omics_train, clinical_df, event="OS", surv_time="OS.time")
-model.explain(sample_ids, omics_train, clinical_df,
-              source="rna", subtype="Her2", label="PAM50")
+model.stratify(mdata, event="OS", surv_time="OS.time",
+               save_path="results/km_stratification", show=True)
+model.explain(sample_ids, mdata, source="rna", subtype="Her2", label="PAM50")
 ```
+
+> [!NOTE]
+> See this [usage section](https://prism-oncology.github.io/customics/tutorials/usage/) for more details about usage.
 
 ## Reproducing Paper Results
 
