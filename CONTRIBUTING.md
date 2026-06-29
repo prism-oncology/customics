@@ -113,6 +113,5 @@ uv run poe docs
 Update the `.ipynb`, and then re-convert to markdown (currently, `.ipynb` is not supported by Zensical):
 
 ```sh
-cd docs/tutorials
-uv run jupyter nbconvert usage.ipynb --to markdown
+uv run poe nb2md
 ```

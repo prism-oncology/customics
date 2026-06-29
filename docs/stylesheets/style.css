@@ -8,6 +8,39 @@
   background: #282828 !important;
 }
 
+/* render pandas DataFrame outputs from notebooks (nbconvert emits <table class="dataframe">).*/
+.md-typeset .dataframe {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+}
+
+/* Override pandas' border="1" attribute: keep the table outline transparent. */
+.md-typeset .dataframe,
+.md-typeset .dataframe th,
+.md-typeset .dataframe td {
+  border-color: transparent;
+}
+
+.md-typeset .dataframe th,
+.md-typeset .dataframe td {
+  padding: 0.35em 0.6em;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.md-typeset .dataframe thead th {
+  background-color: var(--md-default-fg-color--lightest);
+  font-weight: 700;
+}
+
+.md-typeset .dataframe tbody tr:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
 .md-typeset .citation-logos {
   display: flex;
   justify-content: center;

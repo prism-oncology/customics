@@ -33,18 +33,11 @@ into a unified latent space used by the task heads.
 
 ```python
 import matplotlib.pyplot as plt
-import torch
 from sklearn.model_selection import train_test_split
 
 import customics
 from customics import CustOMICS
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Compute device: {device}")
 ```
-
-    Compute device: cpu
-
 
 ---
 
@@ -52,17 +45,21 @@ print(f"Compute device: {device}")
 
 The toy dataset contains **100 patients** with three omics modalities:
 
-| Source     | Features | Description                        |
-| ---------- | -------- | ---------------------------------- |
-| `protein`  | 160      | Reverse Phase Protein Array (RPPA) |
-| `rna`      | 131      | RNA-seq gene expression            |
-| `methyl`   | 367      | DNA methylation (450K array)       |
+| Source    | Features | Description                        |
+| --------- | -------- | ---------------------------------- |
+| `protein` | 160      | Reverse Phase Protein Array (RPPA) |
+| `rna`     | 131      | RNA-seq gene expression            |
+| `methyl`  | 367      | DNA methylation (450K array)       |
 
 
 
 ```python
 mdata = customics.toy_dataset()
 ```
+
+    /Users/alihamraoui/projects/tests/CustOmics/.venv/lib/python3.12/site-packages/mudata/_core/mudata.py:1416: UserWarning: var_names are not unique. To make them unique, call `.var_names_make_unique`.
+      self._update_attr("var", axis=0, join_common=join_common)
+
 
 `mdata` is a [`mudata.MuData`](https://mudata.readthedocs.io/stable/) object:
 
@@ -84,25 +81,178 @@ list(mdata.mod.keys())
 
 
 ```python
-mdata["protein"].to_df()
+mdata["protein"].to_df().head()
 ```
 
-```
-probe        ACC1  ACC_pS79    ACVRL1  Akt_pS473  ...  14.3.3_zeta
-subject1   -0.528    -0.827     2.465      0.118  ...        0.391
-subject2   -0.804    -0.859     2.680      1.164  ...        1.084
-subject3    0.596     0.176     2.782     -1.550  ...        0.355
-subject4    2.307     2.388     2.153      0.175  ...       -0.635
-subject5   -0.949    -0.641     2.242      0.830  ...        0.446
-...           ...       ...       ...        ...  ...          ...
-subject96  -0.981    -0.742     2.528      2.461  ...        0.473
-subject97   0.537     0.060     0.459     -0.383  ...        2.912
-subject98   2.629     2.712     2.142      0.352  ...       -0.060
-subject99  -0.059    -0.021     3.016      1.550  ...        0.122
-subject100  1.731     1.670     2.633      0.366  ...        1.160
 
-[100 rows × 160 columns]
-```
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>probe</th>
+      <th>ACC1</th>
+      <th>ACC_pS79</th>
+      <th>ACVRL1</th>
+      <th>Akt_pS473</th>
+      <th>PRAS40_pT246</th>
+      <th>Annexin.1</th>
+      <th>AR</th>
+      <th>A.Raf_pS299</th>
+      <th>ASNS</th>
+      <th>ATM</th>
+      <th>...</th>
+      <th>XBP1</th>
+      <th>XRCC1</th>
+      <th>Ku80</th>
+      <th>YAP</th>
+      <th>YAP_pS127</th>
+      <th>YB.1</th>
+      <th>YB.1_pS102</th>
+      <th>14.3.3_beta</th>
+      <th>14.3.3_epsilon</th>
+      <th>14.3.3_zeta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>subject1</th>
+      <td>-0.528421</td>
+      <td>-0.826949</td>
+      <td>2.465380</td>
+      <td>0.118108</td>
+      <td>2.682673</td>
+      <td>-0.473918</td>
+      <td>2.692947</td>
+      <td>0.392130</td>
+      <td>-1.458304</td>
+      <td>-0.518608</td>
+      <td>...</td>
+      <td>2.365702</td>
+      <td>-0.115504</td>
+      <td>2.125662</td>
+      <td>0.198529</td>
+      <td>0.263075</td>
+      <td>2.035369</td>
+      <td>3.276020</td>
+      <td>-0.164232</td>
+      <td>2.240264</td>
+      <td>0.390613</td>
+    </tr>
+    <tr>
+      <th>subject2</th>
+      <td>-0.804377</td>
+      <td>-0.858630</td>
+      <td>2.679618</td>
+      <td>1.163897</td>
+      <td>2.789568</td>
+      <td>0.326823</td>
+      <td>3.703054</td>
+      <td>-0.207030</td>
+      <td>-0.567368</td>
+      <td>-1.447359</td>
+      <td>...</td>
+      <td>2.369684</td>
+      <td>-0.250648</td>
+      <td>2.028639</td>
+      <td>0.294427</td>
+      <td>0.087710</td>
+      <td>2.748533</td>
+      <td>2.655492</td>
+      <td>-0.020322</td>
+      <td>2.584052</td>
+      <td>1.083867</td>
+    </tr>
+    <tr>
+      <th>subject3</th>
+      <td>0.596001</td>
+      <td>0.175652</td>
+      <td>2.782368</td>
+      <td>-1.550062</td>
+      <td>2.136330</td>
+      <td>-0.729363</td>
+      <td>3.987616</td>
+      <td>-0.065740</td>
+      <td>0.225819</td>
+      <td>0.321197</td>
+      <td>...</td>
+      <td>2.912468</td>
+      <td>0.235292</td>
+      <td>3.102378</td>
+      <td>0.717648</td>
+      <td>0.118142</td>
+      <td>2.608048</td>
+      <td>1.894032</td>
+      <td>0.423970</td>
+      <td>2.470960</td>
+      <td>0.355451</td>
+    </tr>
+    <tr>
+      <th>subject4</th>
+      <td>2.306769</td>
+      <td>2.387911</td>
+      <td>2.152993</td>
+      <td>0.175379</td>
+      <td>-0.243862</td>
+      <td>0.206090</td>
+      <td>3.851968</td>
+      <td>-0.347185</td>
+      <td>1.595250</td>
+      <td>2.998184</td>
+      <td>...</td>
+      <td>0.019668</td>
+      <td>2.319597</td>
+      <td>0.211079</td>
+      <td>0.178415</td>
+      <td>0.312633</td>
+      <td>-0.205992</td>
+      <td>0.151597</td>
+      <td>2.289823</td>
+      <td>0.153826</td>
+      <td>-0.634842</td>
+    </tr>
+    <tr>
+      <th>subject5</th>
+      <td>-0.948945</td>
+      <td>-0.640623</td>
+      <td>2.242055</td>
+      <td>0.829983</td>
+      <td>2.732090</td>
+      <td>-0.218177</td>
+      <td>2.376110</td>
+      <td>-0.510938</td>
+      <td>-1.030711</td>
+      <td>-0.125802</td>
+      <td>...</td>
+      <td>2.169958</td>
+      <td>-0.044484</td>
+      <td>2.905596</td>
+      <td>0.539468</td>
+      <td>0.338059</td>
+      <td>2.257715</td>
+      <td>2.718098</td>
+      <td>-0.190475</td>
+      <td>2.523407</td>
+      <td>0.445861</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 160 columns</p>
+</div>
 
 
 
@@ -115,24 +265,75 @@ subject100  1.731     1.670     2.633      0.366  ...        1.160
 
 
 ```python
-mdata.obs
+mdata.obs.head()
 ```
 
-| subject    | subjects | cluster.id | OS | OS.time |
-|------------|----------|------------|----|---------|
-| subject1   | 1        | 5          | 0  | 2531    |
-| subject2   | 2        | 5          | 1  | 759     |
-| subject3   | 3        | 5          | 1  | 2453    |
-| subject4   | 4        | 3          | 0  | 220     |
-| subject5   | 5        | 5          | 0  | 2431    |
-| ...        | ...      | ...        | ...| ...     |
-| subject96  | 96       | 2          | 0  | 445     |
-| subject97  | 97       | 4          | 0  | 1159    |
-| subject98  | 98       | 3          | 1  | 530     |
-| subject99  | 99       | 2          | 1  | 1149    |
-| subject100 | 100      | 1          | 0  | 2893    |
 
-*[100 rows × 4 columns]*
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>subjects</th>
+      <th>cluster.id</th>
+      <th>OS</th>
+      <th>OS.time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>subject1</th>
+      <td>1</td>
+      <td>5</td>
+      <td>0</td>
+      <td>2531</td>
+    </tr>
+    <tr>
+      <th>subject2</th>
+      <td>2</td>
+      <td>5</td>
+      <td>1</td>
+      <td>759</td>
+    </tr>
+    <tr>
+      <th>subject3</th>
+      <td>3</td>
+      <td>5</td>
+      <td>1</td>
+      <td>2453</td>
+    </tr>
+    <tr>
+      <th>subject4</th>
+      <td>4</td>
+      <td>3</td>
+      <td>0</td>
+      <td>220</td>
+    </tr>
+    <tr>
+      <th>subject5</th>
+      <td>5</td>
+      <td>5</td>
+      <td>0</td>
+      <td>2431</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
 
 
@@ -196,9 +397,9 @@ plt.show()
 ```python
 # get_shared_samples returns the intersection of sample IDs across all modalities.
 # This ensures every downstream step uses exactly the same set of sample IDs.
-lt_samples = customics.get_shared_samples(mdata)
-print(f"Samples present in ALL sources and clinical data: {len(lt_samples)}")
-print(f"First 5 sample IDs: {lt_samples[:5]}")
+shared_samples = customics.get_shared_samples(mdata)
+print(f"Samples present in ALL sources and clinical data: {len(shared_samples)}")
+print(f"First 5 sample IDs: {shared_samples[:5]}")
 ```
 
     Samples present in ALL sources and clinical data: 100
@@ -216,7 +417,7 @@ keeping the `MuData` object in sync.
 
 
 ```python
-samples_train, samples_test = train_test_split(lt_samples, test_size=0.20, random_state=42)
+samples_train, samples_test = train_test_split(shared_samples, test_size=0.20, random_state=42)
 samples_train, samples_val = train_test_split(samples_train, test_size=0.15, random_state=42)
 
 print(f"Train : {len(samples_train):>3d} samples")
@@ -231,18 +432,15 @@ print(f"Test  : {len(samples_test):>3d} samples")
 
 
 ```python
-# get_sub_mudata returns a new MuData filtered to the given sample IDs.
-mdata_train = customics.get_sub_mudata(mdata, samples_train)
-mdata_val   = customics.get_sub_mudata(mdata, samples_val)
-mdata_test  = customics.get_sub_mudata(mdata, samples_test)
-
 # prepare_input validates clinical columns and registers them in mdata.uns
 # so fit() and evaluate() can find them without repeating column names each time.
 label, event, surv_time = "cluster.id", "OS", "OS.time"
-customics.prepare_input(mdata_train, label, event, surv_time)
-customics.prepare_input(mdata_val,   label, event, surv_time)
-customics.prepare_input(mdata_test,  label, event, surv_time)
-customics.prepare_input(mdata,       label, event, surv_time)
+customics.prepare_input(mdata, label="cluster.id", event="OS", surv_time="OS.time")
+
+# get_sub_mudata returns a new MuData filtered to the given sample IDs.
+mdata_train = customics.get_sub_mudata(mdata, samples_train)
+mdata_val = customics.get_sub_mudata(mdata, samples_val)
+mdata_test = customics.get_sub_mudata(mdata, samples_test)
 
 # Record input dimensions per source — used to configure the autoencoders below.
 x_dim = {mod: mdata[mod].shape[1] for mod in mdata.mod}
@@ -250,6 +448,14 @@ print("Feature dimensions per source:", x_dim)
 ```
 
     Feature dimensions per source: {'rna': 131, 'protein': 160, 'methyl': 367}
+
+
+    /Users/alihamraoui/projects/tests/CustOmics/.venv/lib/python3.12/site-packages/mudata/_core/mudata.py:1416: UserWarning: var_names are not unique. To make them unique, call `.var_names_make_unique`.
+      self._update_attr("var", axis=0, join_common=join_common)
+    /Users/alihamraoui/projects/tests/CustOmics/.venv/lib/python3.12/site-packages/mudata/_core/mudata.py:1416: UserWarning: var_names are not unique. To make them unique, call `.var_names_make_unique`.
+      self._update_attr("var", axis=0, join_common=join_common)
+    /Users/alihamraoui/projects/tests/CustOmics/.venv/lib/python3.12/site-packages/mudata/_core/mudata.py:1416: UserWarning: var_names are not unique. To make them unique, call `.var_names_make_unique`.
+      self._update_attr("var", axis=0, join_common=join_common)
 
 
 ---
@@ -319,11 +525,11 @@ Maps **z** → log-hazard score. Set `lambda = 0` to disable.
 
 
 ```python
-# ── Training schedule ─────────────────────────────────────────────────────────
+# ── Training schedule ───────────────────────────────────────────────────
 batch_size = 32
 n_epochs = 30  # 30 epochs is enough for the 100-sample toy dataset
 
-# ── Per-source autoencoder parameters ────────────────────────────────────────
+# ── Per-source autoencoder parameters ────────────────────────────────────
 # x_dim is a dict {source_name: n_features}, computed from the data above.
 # Using a dict comprehension keeps source_params in sync with x_dim automatically.
 source_params = {
@@ -337,7 +543,7 @@ source_params = {
     for source in x_dim
 }
 
-# ── Central VAE parameters ───────────────────────────────────────────────────
+# ── Central VAE parameters ────────────────────────────────────────────
 central_params = {
     "hidden_dim": [256, 128],
     "latent_dim": 64,  # dimension of the shared latent code z
@@ -346,7 +552,7 @@ central_params = {
     "beta": 1.0,  # MMD regularisation weight
 }
 
-# ── Classifier head parameters ───────────────────────────────────────────────
+# ── Classifier head parameters ──────────────────────────────────────
 classif_params = {
     "n_class": 5,  # subtypes 1-5
     "lambda": 5.0,  # classification loss weight
@@ -354,7 +560,7 @@ classif_params = {
     "dropout": 0.2,
 }
 
-# ── Survival head parameters ─────────────────────────────────────────────────
+# ── Survival head parameters ────────────────────────────────────────
 # lambda=0 disables the Cox loss; the survival head is still built but not trained.
 # To enable survival, set lambda > 0 and ensure OS / OS.time contain real data.
 surv_params = {
@@ -366,7 +572,7 @@ surv_params = {
     "dropout": 0.2,
 }
 
-# ── Optimiser & phase schedule ───────────────────────────────────────────────
+# ── Optimiser & phase schedule ──────────────────────────────────────
 # switch=15 means:
 #   epochs 0–14  → Phase 1: source AEs train independently
 #   epochs 15–29 → Phase 2: central VAE takes over, heads are jointly optimised
@@ -405,10 +611,12 @@ model = CustOMICS(
     classif_params=classif_params,
     surv_params=surv_params,
     train_params=train_params,
-    device=device,
 )
 print(f"Total trainable parameters: {model.get_number_parameters():,}")
 ```
+
+    [36;20m[INFO] (customics.model)[0m Using cpu by default.
+
 
     Total trainable parameters: 790,778
 
@@ -423,302 +631,97 @@ model.fit(
     batch_size=batch_size,
     n_epochs=n_epochs,
     verbose=True,
-)
+);
 ```
 
-    [INFO] (customics.model) Epoch 1/30 | train=28.4917 | val=32.4595
-    [INFO] (customics.model) Epoch 2/30 | train=24.1982 | val=30.1953
-    [INFO] (customics.model) Epoch 3/30 | train=18.2897 | val=26.9450
-    [INFO] (customics.model) Epoch 4/30 | train=16.7007 | val=23.7568
-    [INFO] (customics.model) Epoch 5/30 | train=15.2662 | val=20.3442
-    [INFO] (customics.model) Epoch 6/30 | train=15.6759 | val=16.3787
-    [INFO] (customics.model) Epoch 7/30 | train=13.1489 | val=16.1814
-    [INFO] (customics.model) Epoch 8/30 | train=11.5617 | val=16.1389
-    [INFO] (customics.model) Epoch 9/30 | train=10.8479 | val=14.5620
-    [INFO] (customics.model) Epoch 10/30 | train=10.2700 | val=14.7346
-    [INFO] (customics.model) Epoch 11/30 | train=13.2465 | val=13.7110
-    [INFO] (customics.model) Epoch 12/30 | train=8.7209 | val=13.5023
-    [INFO] (customics.model) Epoch 13/30 | train=10.4842 | val=11.0960
-    [INFO] (customics.model) Epoch 14/30 | train=9.0919 | val=10.6878
-    [INFO] (customics.model) Epoch 15/30 | train=8.5125 | val=10.5673
-    [INFO] (customics.model) Epoch 16/30 | train=7.1673 | val=8.5255
-    [INFO] (customics.model) Epoch 17/30 | train=5.6954 | val=7.2609
-    [INFO] (customics.model) Epoch 18/30 | train=3.7520 | val=6.6319
-    [INFO] (customics.model) Epoch 19/30 | train=3.9967 | val=6.2724
-    [INFO] (customics.model) Epoch 20/30 | train=6.0441 | val=5.0781
-    [INFO] (customics.model) Epoch 21/30 | train=6.8372 | val=4.5348
-    [INFO] (customics.model) Epoch 22/30 | train=4.3612 | val=4.4146
-    [INFO] (customics.model) Epoch 23/30 | train=3.8013 | val=4.3407
-    [INFO] (customics.model) Epoch 24/30 | train=3.9107 | val=4.2530
-    [INFO] (customics.model) Epoch 25/30 | train=3.2288 | val=4.6227
-    [INFO] (customics.model) Epoch 26/30 | train=3.0911 | val=4.8295
-    [INFO] (customics.model) Epoch 27/30 | train=3.6982 | val=4.6160
-    [INFO] (customics.model) Epoch 28/30 | train=3.1297 | val=4.7703
-    [INFO] (customics.model) Epoch 29/30 | train=4.2564 | val=4.7967
-    [INFO] (customics.model) Epoch 30/30 | train=5.3091 | val=4.3446
+    [36;20m[INFO] (customics.model)[0m Epoch 1/30 | train=28.1554 | val=31.3453
 
 
+    [36;20m[INFO] (customics.model)[0m Epoch 2/30 | train=19.8262 | val=29.0017
 
 
+    [36;20m[INFO] (customics.model)[0m Epoch 3/30 | train=18.5581 | val=25.5669
 
 
-<details>
-<summary>Full model architecture (click to expand)</summary>
+    [36;20m[INFO] (customics.model)[0m Epoch 4/30 | train=14.8026 | val=22.5208
 
 
-    CustOMICS(
-      (autoencoders): ModuleList(
-        (0): AutoEncoder(
-          (encoder): Encoder(
-            (net): Sequential(
-              (InputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=160, out_features=256, bias=True)
-                  (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (Layer1): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=256, out_features=128, bias=True)
-                  (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (OutputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=128, out_features=64, bias=True)
-                )
-              )
-            )
-          )
-          (decoder): Decoder(
-            (net): Sequential(
-              (InputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=64, out_features=128, bias=True)
-                  (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (Layer1): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=128, out_features=256, bias=True)
-                  (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (OutputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=256, out_features=160, bias=True)
-                )
-              )
-            )
-          )
-        )
-        (1): AutoEncoder(
-          (encoder): Encoder(
-            (net): Sequential(
-              (InputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=131, out_features=256, bias=True)
-                  (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (Layer1): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=256, out_features=128, bias=True)
-                  (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (OutputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=128, out_features=64, bias=True)
-                )
-              )
-            )
-          )
-          (decoder): Decoder(
-            (net): Sequential(
-              (InputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=64, out_features=128, bias=True)
-                  (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (Layer1): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=128, out_features=256, bias=True)
-                  (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (OutputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=256, out_features=131, bias=True)
-                )
-              )
-            )
-          )
-        )
-        (2): AutoEncoder(
-          (encoder): Encoder(
-            (net): Sequential(
-              (InputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=367, out_features=256, bias=True)
-                  (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (Layer1): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=256, out_features=128, bias=True)
-                  (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (OutputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=128, out_features=64, bias=True)
-                )
-              )
-            )
-          )
-          (decoder): Decoder(
-            (net): Sequential(
-              (InputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=64, out_features=128, bias=True)
-                  (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): Dropout(p=0.2, inplace=False)
-                  (3): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (Layer1): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=128, out_features=256, bias=True)
-                  (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                  (2): LeakyReLU(negative_slope=0.2, inplace=False)
-                )
-              )
-              (OutputLayer): FullyConnectedLayer(
-                (fc_block): Sequential(
-                  (0): Linear(in_features=256, out_features=367, bias=True)
-                )
-              )
-            )
-          )
-        )
-      )
-      (central_layer): VAE(
-        (encoder): ProbabilisticEncoder(
-          (net): Sequential(
-            (InputLayer): FullyConnectedLayer(
-              (fc_block): Sequential(
-                (0): Linear(in_features=192, out_features=256, bias=True)
-                (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                (2): Dropout(p=0.2, inplace=False)
-                (3): LeakyReLU(negative_slope=0.2, inplace=True)
-              )
-            )
-            (Layer1): FullyConnectedLayer(
-              (fc_block): Sequential(
-                (0): Linear(in_features=256, out_features=128, bias=True)
-                (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                (2): LeakyReLU(negative_slope=0.2, inplace=False)
-              )
-            )
-          )
-          (mean_layer): FullyConnectedLayer(
-            (fc_block): Sequential(
-              (0): Linear(in_features=128, out_features=64, bias=True)
-            )
-          )
-          (log_var_layer): FullyConnectedLayer(
-            (fc_block): Sequential(
-              (0): Linear(in_features=128, out_features=64, bias=True)
-            )
-          )
-        )
-        (decoder): ProbabilisticDecoder(
-          (net): Sequential(
-            (InputLayer): FullyConnectedLayer(
-              (fc_block): Sequential(
-                (0): Linear(in_features=64, out_features=128, bias=True)
-                (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                (2): Dropout(p=0.2, inplace=False)
-                (3): LeakyReLU(negative_slope=0.2, inplace=True)
-              )
-            )
-            (Layer1): FullyConnectedLayer(
-              (fc_block): Sequential(
-                (0): Linear(in_features=128, out_features=256, bias=True)
-                (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-                (2): LeakyReLU(negative_slope=0.2, inplace=False)
-              )
-            )
-            (OutputLayer): FullyConnectedLayer(
-              (fc_block): Sequential(
-                (0): Linear(in_features=256, out_features=192, bias=True)
-              )
-            )
-          )
-        )
-      )
-      (classifier): MultiClassifier(
-        (net): Sequential(
-          (InputLayer): FullyConnectedLayer(
-            (fc_block): Sequential(
-              (0): Linear(in_features=64, out_features=64, bias=True)
-              (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-              (2): Dropout(p=0.2, inplace=False)
-              (3): LeakyReLU(negative_slope=0.2, inplace=True)
-            )
-          )
-          (Layer1): FullyConnectedLayer(
-            (fc_block): Sequential(
-              (0): Linear(in_features=64, out_features=32, bias=True)
-              (1): BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-              (2): Dropout(p=0.2, inplace=False)
-              (3): LeakyReLU(negative_slope=0.2, inplace=True)
-            )
-          )
-          (OutputLayer): FullyConnectedLayer(
-            (fc_block): Sequential(
-              (0): Linear(in_features=32, out_features=5, bias=True)
-            )
-          )
-        )
-      )
-      (survival_predictor): SurvivalNet(
-        (model): Sequential(
-          (0): Linear(in_features=64, out_features=32, bias=True)
-          (1): BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-          (2): SELU()
-          (3): Dropout(p=0.2, inplace=False)
-          (4): Linear(in_features=32, out_features=16, bias=True)
-          (5): BatchNorm1d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-          (6): SELU()
-          (7): Dropout(p=0.2, inplace=False)
-          (8): Linear(in_features=16, out_features=1, bias=True)
-          (9): BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-          (10): SELU()
-        )
-      )
-    )
-
-</details>
+    [36;20m[INFO] (customics.model)[0m Epoch 5/30 | train=16.5802 | val=19.5704
 
 
+    [36;20m[INFO] (customics.model)[0m Epoch 6/30 | train=12.9810 | val=17.8585
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 7/30 | train=11.4881 | val=16.9921
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 8/30 | train=10.1333 | val=15.3518
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 9/30 | train=10.5262 | val=15.3346
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 10/30 | train=10.1794 | val=14.3454
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 11/30 | train=10.5995 | val=13.7073
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 12/30 | train=7.6281 | val=14.0633
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 13/30 | train=7.1182 | val=13.5002
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 14/30 | train=7.9152 | val=12.4953
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 15/30 | train=6.1834 | val=12.7738
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 16/30 | train=7.1652 | val=8.7022
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 17/30 | train=5.0774 | val=7.4710
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 18/30 | train=6.6187 | val=6.1886
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 19/30 | train=3.7562 | val=5.8766
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 20/30 | train=4.1006 | val=5.7664
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 21/30 | train=4.7605 | val=5.6158
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 22/30 | train=3.9775 | val=5.4532
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 23/30 | train=3.2129 | val=5.4427
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 24/30 | train=4.0675 | val=5.0563
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 25/30 | train=4.6486 | val=5.2825
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 26/30 | train=5.0474 | val=5.1783
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 27/30 | train=4.5562 | val=5.3988
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 28/30 | train=3.4257 | val=5.2837
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 29/30 | train=4.1434 | val=4.8389
+
+
+    [36;20m[INFO] (customics.model)[0m Epoch 30/30 | train=4.3941 | val=4.9779
 
 
 
@@ -795,7 +798,7 @@ print("C-index :", surv_metrics)
 
 
     ── Survival metrics on the test set ──
-    C-index : 0.48936170212765956
+    C-index : 0.3723404255319149
 
 
 ---
@@ -825,7 +828,7 @@ RESULTS_DIR.mkdir(exist_ok=True)
 
 model.plot_representation(
     mdata=mdata,
-    label=label,
+    color=label,
     filename=RESULTS_DIR / "latent_representation",
     title="t-SNE of the integrated latent space",
     show=True,
@@ -838,6 +841,11 @@ model.plot_representation(
 
 
 ![png](usage_files/usage_26_1.png)
+
+
+
+
+    <Figure size 640x480 with 0 Axes>
 
 
 ---
@@ -854,13 +862,7 @@ Kaplan-Meier curve.
 
 
 ```python
-model.stratify(
-    mdata=mdata,
-    event=event,
-    surv_time=surv_time,
-    save_path="results/km_stratification",
-    show=True,
-)
+model.stratify(mdata=mdata, show=True)
 ```
 
 
@@ -895,58 +897,59 @@ means more influential for predicting the chosen subtype.
 
 ```python
 # Feature importance for RNA expression → subtype 1
-model.explain(
-    sample_id=lt_samples,
-    mdata=mdata,
-    source="rna",
-    subtype=1,
-    label=label,
-    device="cpu",
-    show=True,
-)
+model.explain(sample_ids=shared_samples, mdata=mdata, source="rna", subtype=1, show=True)
 ```
 
+    [36;20m[INFO] (customics.model)[0m Using cpu by default.
 
 
-![png](usage_files/shap_rna_1.png)
+
+
+![png](usage_files/usage_30_1.png)
+
+
+
+
+    <Figure size 640x480 with 0 Axes>
 
 
 
 ```python
 # Feature importance for protein expression → subtype 1
-model.explain(
-    sample_id=lt_samples,
-    mdata=mdata,
-    source="protein",
-    subtype=1,
-    label=label,
-    device="cpu",
-    show=True,
-)
+model.explain(sample_ids=shared_samples, mdata=mdata, source="protein", subtype=1, show=True)
 ```
 
+    [36;20m[INFO] (customics.model)[0m Using cpu by default.
 
 
-![png](usage_files/shap_protein_1.png)
+
+
+![png](usage_files/usage_31_1.png)
+
+
+
+
+    <Figure size 640x480 with 0 Axes>
 
 
 
 ```python
 # Feature importance for DNA methylation → subtype 1
-model.explain(
-    sample_id=lt_samples,
-    mdata=mdata,
-    source="methyl",
-    subtype=1,
-    label=label,
-    device="cpu",
-    show=True,
-)
+model.explain(sample_ids=shared_samples, mdata=mdata, source="methyl", subtype=1, show=True)
 ```
 
+    [36;20m[INFO] (customics.model)[0m Using cpu by default.
 
 
-![png](usage_files/shap_methyl_1.png)
+
+
+![png](usage_files/usage_32_1.png)
+
+
+
+
+    <Figure size 640x480 with 0 Axes>
+
 
 ---
 
@@ -969,17 +972,22 @@ checkpoint_path = RESULTS_DIR / "customics_model.pt"
 model.save(checkpoint_path)
 ```
 
-    [INFO] (customics.model) Model saved to results/customics_model.pt
+    [36;20m[INFO] (customics.model)[0m Model saved to results/customics_model.pt
 
 
 
 ```python
 # load() is a class method — it rebuilds the model from the checkpoint file.
-loaded_model = CustOMICS.load(checkpoint_path, device=device)
+loaded_model = CustOMICS.load(checkpoint_path)
 print(f"Parameters in loaded model: {loaded_model.get_number_parameters():,}")
 ```
 
-    [INFO] (customics.model) Model loaded from results/customics_model.pt
+    [36;20m[INFO] (customics.model)[0m Using cpu by default.
+
+
+    [36;20m[INFO] (customics.model)[0m Model loaded from results/customics_model.pt
+
+
     Parameters in loaded model: 790,778
 
 
