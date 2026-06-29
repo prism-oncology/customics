@@ -32,22 +32,17 @@ class ModelWrapper(nn.Module):
         return self.model.source_predict(x, self.source)
 
 
-def process_phenotype_data_for_samples(
-    clinical_df: pd.DataFrame,
-    sample_id: list[str],
-    label_encoder,
-) -> pd.DataFrame:
+def process_phenotype_data_for_samples(clinical_df: pd.DataFrame, sample_ids: list[str]) -> pd.DataFrame:
     """Subset clinical DataFrame to the given samples.
 
     Args:
         clinical_df: Full clinical metadata.
-        sample_id: Sample IDs to retain.
-        label_encoder: Fitted label encoder (unused here; kept for API compatibility).
+        sample_ids: Sample IDs to retain.
 
     Returns:
         Subsetted clinical DataFrame.
     """
-    return clinical_df.loc[sample_id, :]
+    return clinical_df.loc[sample_ids, :]
 
 
 def random_training_sample(expr: pd.DataFrame, sample_size: int) -> pd.DataFrame:

@@ -35,7 +35,7 @@ class CustOMICS(nn.Module):
         classif_params: dict,
         surv_params: dict,
         train_params: dict,
-        device: torch.device,
+        device: torch.device | None = None,
     ) -> None:
         """Model initialization.
 
@@ -75,7 +75,7 @@ class CustOMICS(nn.Module):
         super().__init__()
         self._validate_params(source_params, central_params, classif_params, train_params)
 
-        self.device = device
+        self.device = _parse_device(device)
         self.source_names: list[str] = list(source_params.keys())
         self.n_source = len(self.source_names)
         self.beta = central_params["beta"]
@@ -113,7 +113,7 @@ class CustOMICS(nn.Module):
                     norm_layer=source_params[s]["norm"],
                     dropout=source_params[s]["dropout"],
                 ),
-                device=device,
+                device=self.device,
             )
             for s in self.source_names
         ])
@@ -137,7 +137,7 @@ class CustOMICS(nn.Module):
                 norm_layer=central_params["norm"],
                 dropout=central_params["dropout"],
             ),
-            device=device,
+            device=self.device,
         )
 
         # ------------------------------------------------------------------ #
@@ -608,7 +608,7 @@ class CustOMICS(nn.Module):
 
     def explain(
         self,
-        sample_id: list[str],
+        sample_ids: list[str],
         mdata: MuData,
         source: str,
         subtype: str,
@@ -621,7 +621,7 @@ class CustOMICS(nn.Module):
         SHAP values are computed for `subtype` against all other classes.
 
         Args:
-            sample_id: Sample IDs to use as the SHAP background and foreground sets.
+            sample_ids: Sample IDs to use as the SHAP background and foreground sets.
             mdata: Multi-omics object whose `obs` holds the clinical metadata.
             source: Omics source key to explain.
             subtype: Class label to explain.
@@ -644,15 +644,14 @@ class CustOMICS(nn.Module):
 
         self._require_fitted()
 
-        if device is None:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = _parse_device(device)
 
         expr_df = mdata[source].to_df()
-        sample_id = list(set(sample_id) & set(expr_df.index))
-        phenotype = process_phenotype_data_for_samples(mdata.obs, sample_id, self.label_encoder)
+        sample_ids = list(set(sample_ids) & set(expr_df.index))
+        phenotype = process_phenotype_data_for_samples(mdata.obs, sample_ids)
         condition = phenotype[mdata.uns[Keys.LABEL]] == subtype
 
-        expr_df = expr_df.loc[sample_id, :]
+        expr_df = expr_df.loc[sample_ids, :]
         background = add_to_tensor(random_training_sample(expr_df, 10), device)
         foreground_df = split_expr_and_sample(condition=condition, sample_size=10, expr=expr_df)
         foreground = add_to_tensor(foreground_df, device)
@@ -796,8 +795,8 @@ class CustOMICS(nn.Module):
         Returns:
             A fully initialised, ready-to-use model instance.
         """
-        if device is None:
-            device = torch.device("cpu")
+        device = _parse_device(device)
+
         checkpoint = torch.load(path, map_location=device, weights_only=False)
         model = cls(
             source_params=checkpoint["source_params"],
@@ -815,3 +814,11 @@ class CustOMICS(nn.Module):
         model.to(device)
         logger.info(f"Model loaded from {path}")
         return model
+
+
+def _parse_device(device: str | torch.device | None) -> torch.device:
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logger.info(f"Using {device} by default.")
+        return device
+    return device
