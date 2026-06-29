@@ -11,7 +11,7 @@ matplotlib.use("Agg")
 def explain_kwargs(mdata):
     """Minimal keyword arguments for explain() using the 'rna' source."""
     return {
-        "sample_id": list(mdata.obs_names),
+        "sample_ids": list(mdata.obs_names),
         "mdata": mdata,
         "source": "rna",
         "subtype": "TypeA",
@@ -30,7 +30,7 @@ class TestExplainSmoke:
         """explain() completes without error for the cnv source."""
         monkeypatch.chdir(tmp_path)
         fitted_model.explain(
-            sample_id=list(mdata.obs_names),
+            sample_ids=list(mdata.obs_names),
             mdata=mdata,
             source="cnv",
             subtype="TypeA",
@@ -91,7 +91,7 @@ class TestExplainStateDict:
         monkeypatch.chdir(tmp_path)
         for subtype in ["TypeA", "TypeB"]:
             fitted_model.explain(
-                sample_id=list(mdata.obs_names),
+                sample_ids=list(mdata.obs_names),
                 mdata=mdata,
                 source="rna",
                 subtype=subtype,
@@ -109,7 +109,7 @@ class TestExplainEdgeCases:
         monkeypatch.chdir(tmp_path)
         partial = list(mdata.obs_names[:5])
         fitted_model.explain(
-            sample_id=partial,
+            sample_ids=partial,
             mdata=mdata,
             source="rna",
             subtype="TypeA",
@@ -122,7 +122,7 @@ class TestExplainEdgeCases:
         monkeypatch.chdir(tmp_path)
         sample_ids = [*list(mdata.obs_names[:5]), "DOES_NOT_EXIST"]
         fitted_model.explain(
-            sample_id=sample_ids,
+            sample_ids=sample_ids,
             mdata=mdata,
             source="rna",
             subtype="TypeA",
