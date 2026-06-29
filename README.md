@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/assets/customics.png" alt="customics_logo" width="300"/>
+  <img src="https://raw.githubusercontent.com/prism-oncology/customics/main/docs/assets/customics.png" alt="customics_logo" width="300"/>
 </p>
 <p align="center"><b><i>
 	CustOmics: a versatile deep-learning based strategy for multi-omics integration
@@ -43,7 +43,6 @@ pip install customics
 
 
 ```python
-import torch
 import customics
 from customics import CustOMICS
 
@@ -66,8 +65,7 @@ model = CustOMICS(
     central_params=central_params,
     classif_params=classif_params,
     surv_params=surv_params,
-    train_params=train_params,
-    device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    train_params=train_params
 )
 
 # --- 3. Train ---
@@ -79,11 +77,10 @@ ci = model.evaluate(mdata, task="survival")             # concordance index
 
 # --- 5. Visualise & explain ---
 model.plot_loss()
-model.plot_representation(mdata, label="PAM50",
+model.plot_representation(mdata, color="PAM50",
                           filename="latent_space", title="t-SNE of latent space")
-model.stratify(mdata, event="OS", surv_time="OS.time",
-               save_path="results/km_stratification", show=True)
-model.explain(sample_ids, mdata, source="rna", subtype="Her2", label="PAM50")
+model.stratify(mdata, show=True)
+model.explain(sample_ids, mdata, source="rna", subtype="Her2")
 ```
 
 > [!NOTE]
