@@ -54,7 +54,7 @@ def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: 
 def plot_representation(
     model: CustOMICS,
     mdata: MuData,
-    label: str,
+    color: str,
     filename: str,
     title: str,
     show: bool = True,
@@ -64,7 +64,7 @@ def plot_representation(
     Args:
         model: A fitted model.
         mdata: Multi-omics object.
-        label: Column in `mdata.obs` to use for colouring.
+        color: Column in `mdata.obs` to use for colouring.
         filename: Output path (without extension).
         title: Plot title.
         show: If True, display the figure interactively.
@@ -73,7 +73,7 @@ def plot_representation(
 
     shared_samples = get_shared_samples(mdata)
     z = model.get_latent_representation(mdata)
-    labels_arr = mdata.obs.loc[shared_samples, label].values
+    labels_arr = mdata.obs.loc[shared_samples, color].values
     save_plot_score(filename, z, labels_arr, title, show=show)
 
 

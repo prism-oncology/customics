@@ -612,7 +612,6 @@ class CustOMICS(nn.Module):
         mdata: MuData,
         source: str,
         subtype: str,
-        label: str = "PAM50",
         device: str = "cpu",
         show: bool = False,
     ) -> None:
@@ -626,7 +625,6 @@ class CustOMICS(nn.Module):
             mdata: Multi-omics object whose `obs` holds the clinical metadata.
             source: Omics source key to explain.
             subtype: Class label to explain.
-            label: Column in `clinical_df` with class labels.
             device: Device for SHAP tensors.
             show: Display the SHAP plot interactively.
 
@@ -648,7 +646,7 @@ class CustOMICS(nn.Module):
         expr_df = mdata[source].to_df()
         sample_id = list(set(sample_id) & set(expr_df.index))
         phenotype = process_phenotype_data_for_samples(mdata.obs, sample_id, self.label_encoder)
-        condition = phenotype[label] == subtype
+        condition = phenotype[mdata.uns[Keys.LABEL]] == subtype
 
         expr_df = expr_df.loc[sample_id, :]
         background = add_to_tensor(random_training_sample(expr_df, 10), device)
@@ -713,7 +711,7 @@ class CustOMICS(nn.Module):
     def plot_representation(
         self,
         mdata: MuData,
-        label: str,
+        color: str,
         filename: str,
         title: str,
         show: bool = True,
@@ -722,20 +720,18 @@ class CustOMICS(nn.Module):
 
         Args:
             mdata: Multi-omics object.
-            label: Column in `mdata.obs` to use for colouring samples.
+            color: Column in `mdata.obs` to use for colouring samples.
             filename: Output path prefix (a `.png` suffix is appended).
             title: Plot title.
             show: Display the figure interactively.
         """
         from customics.visualization import plot_representation as _plot
 
-        _plot(self, mdata, label, filename, title, show=show)
+        _plot(self, mdata, color, filename, title, show=show)
 
     def stratify(
         self,
         mdata: MuData,
-        event: str,
-        surv_time: str,
         plot_title: str = "",
         save_path: str | None = None,
         show: bool = True,
@@ -744,15 +740,13 @@ class CustOMICS(nn.Module):
 
         Args:
             mdata: Multi-omics object.
-            event: Event-indicator column in `mdata.obs`.
-            surv_time: Survival-time column in `mdata.obs`.
             plot_title: Title prefix for the figure.
             save_path: Save the figure to this path when provided.
             show: Display the figure interactively.
         """
         from customics.visualization import plot_survival_stratification as _plot
 
-        _plot(self, mdata, event, surv_time, plot_title, save_path, show)
+        _plot(self, mdata, mdata.uns[Keys.EVENT], mdata.uns[Keys.SURV_TIME], plot_title, save_path, show)
 
     # ---------------------------------------------------------------------- #
     # Serialisation

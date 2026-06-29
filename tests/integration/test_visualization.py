@@ -18,7 +18,7 @@ class TestPlotRepresentation:
         out = tmp_path / "tsne"
         fitted_model.plot_representation(
             mdata=mdata,
-            label="label",
+            color="label",
             filename=str(out),
             title="Test t-SNE",
             show=False,
@@ -28,7 +28,7 @@ class TestPlotRepresentation:
     def test_returns_none(self, fitted_model, mdata, tmp_path):
         result = fitted_model.plot_representation(
             mdata=mdata,
-            label="label",
+            color="label",
             filename=str(tmp_path / "tsne"),
             title="Test t-SNE",
             show=False,
@@ -40,7 +40,7 @@ class TestPlotRepresentation:
         out = tmp_path / "tsne"
         fitted_model.plot_representation(
             mdata=mdata,
-            label="label",
+            color="label",
             filename=str(out),
             title="Test t-SNE",
             show=False,
@@ -67,7 +67,7 @@ class TestPlotRepresentation:
 
         fitted_model.plot_representation(
             mdata=mdata,
-            label="label",
+            color="label",
             filename=str(tmp_path / "tsne_label"),
             title="Test",
             show=False,
@@ -82,8 +82,6 @@ class TestStratify:
         """stratify() must complete without raising for any MuData input."""
         fitted_model.stratify(
             mdata=mdata,
-            event="OS",
-            surv_time="OS.time",
             show=False,
         )
 
@@ -92,8 +90,6 @@ class TestStratify:
         out = str(tmp_path / "km")
         fitted_model.stratify(
             mdata=mdata,
-            event="OS",
-            surv_time="OS.time",
             save_path=out,
             show=False,
         )
@@ -104,8 +100,6 @@ class TestStratify:
         monkeypatch.chdir(tmp_path)
         fitted_model.stratify(
             mdata=mdata,
-            event="OS",
-            surv_time="OS.time",
             show=False,
         )
         assert not list(tmp_path.glob("*.png"))
@@ -113,8 +107,6 @@ class TestStratify:
     def test_returns_none(self, fitted_model, mdata):
         result = fitted_model.stratify(
             mdata=mdata,
-            event="OS",
-            surv_time="OS.time",
             show=False,
         )
         assert result is None

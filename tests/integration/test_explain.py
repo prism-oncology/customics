@@ -15,7 +15,6 @@ def explain_kwargs(mdata):
         "mdata": mdata,
         "source": "rna",
         "subtype": "TypeA",
-        "label": "label",
         "device": "cpu",
         "show": False,
     }
@@ -35,7 +34,6 @@ class TestExplainSmoke:
             mdata=mdata,
             source="cnv",
             subtype="TypeA",
-            label="label",
             device="cpu",
             show=False,
         )
@@ -97,7 +95,6 @@ class TestExplainStateDict:
                 mdata=mdata,
                 source="rna",
                 subtype=subtype,
-                label="label",
                 device="cpu",
                 show=False,
             )
@@ -116,7 +113,6 @@ class TestExplainEdgeCases:
             mdata=mdata,
             source="rna",
             subtype="TypeA",
-            label="label",
             device="cpu",
             show=False,
         )
@@ -130,7 +126,6 @@ class TestExplainEdgeCases:
             mdata=mdata,
             source="rna",
             subtype="TypeA",
-            label="label",
             device="cpu",
             show=False,
         )
