@@ -6,18 +6,18 @@ from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+import scanpy as sc
 import seaborn as sns
+from anndata import AnnData
 from mudata import MuData
-from sklearn.manifold import TSNE
+
+from customics._constants import Keys
 
 if TYPE_CHECKING:
-    import pandas as pd
-
     from customics import CustOMICS
 
 
-def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: bool = True) -> None:
+def plot_loss(history: list, switch_epoch: int, figsize: tuple[float, float], show: bool = True) -> None:
     """Plot training (and optional validation) loss curves.
 
     Args:
@@ -47,43 +47,39 @@ def plot_loss(history: list, switch_epoch: int, figsize: tuple = (10, 5), show: 
     plt.xlabel("epoch")
     plt.ylabel("loss")
     plt.legend()
+    sns.despine(offset=10, trim=True)
+    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0, frameon=False)
+
     if show:
         plt.show()
 
 
-def plot_representation(
-    model: CustOMICS,
-    mdata: MuData,
-    color: str,
-    filename: str,
-    title: str,
-    show: bool = True,
-) -> None:
+def plot_representation(model: CustOMICS, mdata: MuData, color: str, show: bool = True) -> None:
     """Compute the latent representation and save a t-SNE scatter plot.
 
     Args:
         model: A fitted model.
         mdata: Multi-omics object.
         color: Column in `mdata.obs` to use for colouring.
-        filename: Output path (without extension).
-        title: Plot title.
         show: If True, display the figure interactively.
     """
     from customics.utils import get_shared_samples
 
     shared_samples = get_shared_samples(mdata)
-    z = model.get_latent_representation(mdata)
-    labels_arr = mdata.obs.loc[shared_samples, color].values
-    save_plot_score(filename, z, labels_arr, title, show=show)
+
+    adata = AnnData(X=model.get_latent_representation(mdata))
+    adata.obs[color] = mdata.obs.loc[shared_samples, color].values
+
+    sc.pp.pca(adata)
+    sc.pp.neighbors(adata)
+    sc.tl.umap(adata)
+
+    sc.pl.umap(adata, color=color, show=show)
 
 
 def plot_survival_stratification(
     model: CustOMICS,
     mdata: MuData,
-    event: str,
-    surv_time: str,
-    plot_title: str = "",
-    save_path: str | None = None,
     show: bool = True,
 ) -> None:
     """Stratify patients by median hazard and plot Kaplan-Meier curves.
@@ -91,10 +87,6 @@ def plot_survival_stratification(
     Args:
         model: A fitted model.
         mdata: Multi-omics object.
-        event: Event indicator column.
-        surv_time: Survival time column.
-        plot_title: Title prefix for the figure.
-        save_path: If provided, save the figure to this path.
         show: If True, display the figure interactively.
     """
     import torch
@@ -102,6 +94,9 @@ def plot_survival_stratification(
 
     from customics.metrics.survival import cox_log_rank
     from customics.utils import get_shared_samples
+
+    surv_time = mdata.uns[Keys.SURV_TIME]
+    event = mdata.uns[Keys.EVENT]
 
     shared_samples = get_shared_samples(mdata)
     z = model.get_latent_representation(mdata)
@@ -122,37 +117,39 @@ def plot_survival_stratification(
     )
     kmf_low.plot()
     kmf_high.plot()
-    plt.title(f"{plot_title} (p-value = {p_value:.3g})")
-    if save_path:
-        plt.savefig(save_path, bbox_inches="tight")
+    plt.title(f"Survival stratification (p-value = {p_value:.3g})")
+    sns.despine(offset=10, trim=True)
+    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0, frameon=False)
+
     if show:
         plt.show()
 
 
-def save_plot_score(filename: str, z: np.ndarray, y: np.ndarray, title: str, show: bool = False) -> None:
-    """Compute a t-SNE embedding and save a colour-coded scatter plot.
+def plot_cohort_overview(mdata: MuData, show: bool = True) -> None:
+    """Plot the subtype distribution and survival-time histogram side by side.
+
+    Reads the clinical column names from `mdata.uns`.
 
     Args:
-        filename: Output file path (without extension; a `.png` suffix is appended).
-        z: High-dimensional feature matrix, shape (n_samples, n_features).
-        y: Class labels for colouring, shape (n_samples,).
-        title: Plot title.
-        show: If True, display the plot interactively after saving.
+        mdata: Multi-omics object with clinical columns registered in `mdata.uns`.
+        show: If True, display the figure interactively.
     """
-    perplexity = min(40, len(z) - 1)
-    tsne = TSNE(n_components=2, verbose=0, perplexity=perplexity)
-    embedding = tsne.fit_transform(z)
-    df = pd.DataFrame({"targets": y, "x-axis": embedding[:, 0], "y-axis": embedding[:, 1]})
-    sns.scatterplot(
-        x="x-axis",
-        y="y-axis",
-        hue=df["targets"].tolist(),
-        palette=sns.color_palette("hls", len(np.unique(y))),
-        data=df,
-    )
-    plt.title(title)
-    plt.legend(bbox_to_anchor=(1.5, 1.1), loc=2, borderaxespad=0.0)
-    plt.savefig(str(filename) + ".png", bbox_inches="tight")
+    label = mdata.uns[Keys.LABEL]
+    surv_time = mdata.uns[Keys.SURV_TIME]
+
+    counts = mdata.obs[label].value_counts().sort_index()
+
+    _, axes = plt.subplots(1, 2, figsize=(12, 4))
+    counts.plot(kind="bar", ax=axes[0], color="steelblue", edgecolor="white")
+    axes[0].set_title("Samples per subtype")
+    axes[0].set_xlabel("Cluster ID (subtype)")
+    axes[0].set_ylabel("Count")
+    axes[0].tick_params(axis="x", rotation=0)
+
+    mdata.obs[surv_time].hist(bins=20, ax=axes[1], color="coral", edgecolor="white")
+    axes[1].set_title("Overall survival time distribution")
+    axes[1].set_xlabel("Days")
+    sns.despine(offset=10, trim=True)
+
     if show:
         plt.show()
-    plt.clf()

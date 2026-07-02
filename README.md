@@ -15,7 +15,7 @@
 
 </div>
 
-**Integrate RNA-seq, CNV, DNA methylation, and more into a single predictive model — with two lines of code.**
+**Integrate RNA-seq, CNV, DNA methylation, and more into a single predictive model.**
 
 `customics` is a Python package for integrating multiple genomic data modalities using a hierarchical deep-learning architecture. It supports classification, survival outcome prediction, and SHAP-based explainability — all in a single scikit-learn-style API, built on [MuData](https://mudata.readthedocs.io/stable/) from [scverse](https://scverse.org/).
 
@@ -77,8 +77,7 @@ ci = model.evaluate(mdata, task="survival")             # concordance index
 
 # --- 5. Visualise & explain ---
 model.plot_loss()
-model.plot_representation(mdata, color="PAM50",
-                          filename="latent_space", title="t-SNE of latent space")
+model.plot_representation(mdata, color="PAM50")
 model.stratify(mdata, show=True)
 model.explain(sample_ids, mdata, source="rna", subtype="Her2")
 ```

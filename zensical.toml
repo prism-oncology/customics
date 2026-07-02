@@ -13,13 +13,14 @@ nav = [
    { "Home" = "index.md" },
    { "Getting started" = "getting_started.md" },
    { "API" = [
+      "api/data.md",
       "api/train.md",
       "api/evaluate.md",
       "api/visualise.md",
    ] },
    { "Tutorials" = [
       "tutorials/usage.md",
-      "hyperparameter_tuning.md",
+      "tutorials/hyperparameter_tuning.md",
    ] },
    { "Cite us" = "citation.md" },
 ]

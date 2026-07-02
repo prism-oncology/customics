@@ -4,7 +4,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from anndata import AnnData
 from mudata import MuData
 from sklearn.model_selection import KFold, train_test_split
@@ -12,14 +11,6 @@ from sklearn.model_selection import KFold, train_test_split
 from customics.exceptions import DataValidationError
 
 from ._constants import Keys
-
-sns.set_style("darkgrid")
-sns.set_palette("muted")
-sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
-
-# ---------------------------------------------------------------------------
-# Toy dataset loader
-# ---------------------------------------------------------------------------
 
 
 def toy_dataset() -> MuData:
@@ -49,6 +40,7 @@ def toy_dataset() -> MuData:
     })
 
     mdata.obs = clinical_df
+    mdata.obs["cluster.id"] = mdata.obs["cluster.id"].astype(str)
 
     return mdata
 
@@ -113,6 +105,38 @@ def get_sub_mudata(mdata: MuData, shared_samples: list[str]) -> MuData:
     sub.obs = mdata.obs.loc[[s for s in shared_samples if s in mdata.obs_names]]
     sub.uns = dict(mdata.uns)
     return sub
+
+
+def split_mudata(
+    mdata: MuData,
+    test_size: float = 0.20,
+    val_size: float = 0.15,
+    random_state: int | None = 42,
+) -> tuple[MuData, MuData, MuData]:
+    """Split a MuData into train/validation/test subsets by shared samples.
+
+    Samples present in every modality are split into a test set, then the
+    remaining samples are split into train and validation sets.
+
+    Args:
+        mdata: Multi-omics object to split.
+        test_size: Fraction of shared samples held out for the test set.
+        val_size: Fraction of the remaining (non-test) samples used for validation.
+        random_state: Seed for reproducible splits.
+
+    Returns:
+        `(mdata_train, mdata_val, mdata_test)`.
+    """
+    shared_samples = get_shared_samples(mdata)
+
+    samples_train, samples_test = train_test_split(shared_samples, test_size=test_size, random_state=random_state)
+    samples_train, samples_val = train_test_split(samples_train, test_size=val_size, random_state=random_state)
+
+    return (
+        get_sub_mudata(mdata, samples_train),
+        get_sub_mudata(mdata, samples_val),
+        get_sub_mudata(mdata, samples_test),
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -38,12 +38,6 @@ class TestExplainSmoke:
             show=False,
         )
 
-    def test_explain_saves_png(self, fitted_model, explain_kwargs, tmp_path, monkeypatch):
-        """explain() must write shap_{source}_{subtype}.png to the working directory."""
-        monkeypatch.chdir(tmp_path)
-        fitted_model.explain(**explain_kwargs)
-        assert (tmp_path / "shap_rna_TypeA.png").exists()
-
     def test_explain_returns_none(self, fitted_model, explain_kwargs, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         result = fitted_model.explain(**explain_kwargs)

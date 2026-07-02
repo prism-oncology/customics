@@ -63,7 +63,7 @@ def multi_classification_evaluation(
         else float("nan"),
     }
     if save_confusion and filename is not None:
-        plt.figure(figsize=(18, 8))
+        plt.figure(figsize=(10, 4))
         sns.heatmap(
             metrics.confusion_matrix(y_true, y_pred),
             annot=True,
@@ -84,6 +84,7 @@ def plot_roc_multiclass(
     filename: str = "",
     n_classes: int = 2,
     var_names: list[str] | None = None,
+    figsize: tuple[float, float] = (4, 3),
 ) -> None:
     """Plot per-class ROC curves for a multi-class model.
 
@@ -93,12 +94,13 @@ def plot_roc_multiclass(
         filename: If non-empty, save the figure to `roc_multi_{filename}.png`.
         n_classes: Number of classes.
         var_names: Class names used in the legend.
+        figsize: Figure size for the ROC curve.
     """
     if var_names is None:
         var_names = [str(i) for i in range(n_classes)]
 
     colors = ["red", "green", "blue", "magenta", "orange", "cyan"]
-    plt.figure()
+    plt.figure(figsize=figsize)
     for i in range(n_classes):
         fpr, tpr, _ = roc_curve((y_test == i).astype(int), y_pred_proba[:, i])
         roc_auc = auc(fpr, tpr)
@@ -112,5 +114,8 @@ def plot_roc_multiclass(
     plt.ylabel("True Positive Rate")
     plt.title(f"ROC curve — {filename}")
     plt.legend(loc="lower right")
+    sns.despine(offset=10, trim=True)
+    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0, frameon=False)
+
     if filename:
         plt.savefig(f"roc_multi_{filename}.png")

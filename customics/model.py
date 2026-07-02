@@ -332,8 +332,8 @@ class CustOMICS(nn.Module):
         omics_val: MuData | None = None,
         batch_size: int = 32,
         n_epochs: int = 30,
-        verbose: bool = False,
-    ) -> CustOMICS:
+        verbose: bool = True,
+    ) -> None:
         """Train the customics model.
 
         Args:
@@ -342,9 +342,6 @@ class CustOMICS(nn.Module):
             batch_size: Mini-batch size.
             n_epochs: Number of training epochs.
             verbose: Log epoch-level loss when True.
-
-        Returns:
-            `self` (enables method chaining).
 
         Raises:
             DataValidationError: If required columns are missing or samples don't overlap.
@@ -400,7 +397,6 @@ class CustOMICS(nn.Module):
                     logger.info("Epoch %d/%d | train=%.4f", epoch + 1, n_epochs, train_loss)
 
         self._is_fitted = True
-        return self
 
     def _validate_fit_inputs(self, mdata: MuData) -> tuple[str, str, str]:
         if not all(key in mdata.uns for key in [Keys.LABEL, Keys.EVENT, Keys.SURV_TIME]):
@@ -524,6 +520,7 @@ class CustOMICS(nn.Module):
         task: str,
         batch_size: int = 32,
         plot_roc: bool = False,
+        figsize: tuple[float, float] = (4, 3),
     ) -> float | dict[str, float]:
         """Evaluate the model on held-out data.
 
@@ -532,6 +529,7 @@ class CustOMICS(nn.Module):
             task: `'classification'` or `'survival'`.
             batch_size: Evaluation batch size.
             plot_roc: Save a ROC curve image (classification only).
+            figsize: Figure size for the ROC curve.
 
         Returns:
             Concordance index (float) for `task='survival'`, or a metrics dict
@@ -592,6 +590,7 @@ class CustOMICS(nn.Module):
         y_true = np.concatenate(all_y_true)
         y_pred = np.concatenate(all_y_pred)
         y_proba = np.vstack(all_y_proba)
+
         if plot_roc:
             plot_roc_multiclass(
                 y_test=y_true,
@@ -599,7 +598,9 @@ class CustOMICS(nn.Module):
                 filename="test",
                 n_classes=self.num_classes,
                 var_names=np.unique(mdata.obs[label].values.tolist()).tolist(),
+                figsize=figsize,
             )
+
         return multi_classification_evaluation(y_true, y_pred, y_proba, ohe=self.one_hot_encoder)
 
     # ------------------------------------------------------------------ #
@@ -613,7 +614,7 @@ class CustOMICS(nn.Module):
         source: str,
         subtype: str,
         device: str | None = None,
-        show: bool = False,
+        show: bool = True,
     ) -> None:
         """Compute and plot SHAP values for one omics source and one subtype.
 
@@ -678,10 +679,9 @@ class CustOMICS(nn.Module):
             max_display=10,
             plot_size=[4, 6],
         )
-        plt.savefig(f"shap_{source}_{subtype}.png", bbox_inches="tight")
+
         if show:
             plt.show()
-        plt.clf()
 
         # SHAP registers forward/backward hook tensors as nn.Parameter on each
         # module. Remove them so state_dict() stays clean for save/load.
@@ -701,55 +701,39 @@ class CustOMICS(nn.Module):
         """
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
-    def plot_loss(self, show: bool = True) -> None:
+    def plot_loss(self, show: bool = True, figsize: tuple[float, float] = (6, 3)) -> None:
         """Plot training (and validation) loss history.
 
         Args:
             show: Display the figure interactively.
+            figsize: Figure size.
         """
         from customics.visualization import plot_loss as _plot
 
-        _plot(self.history, self.switch_epoch, show=show)
+        _plot(self.history, self.switch_epoch, show=show, figsize=figsize)
 
-    def plot_representation(
-        self,
-        mdata: MuData,
-        color: str,
-        filename: str,
-        title: str,
-        show: bool = True,
-    ) -> None:
+    def plot_representation(self, mdata: MuData, color: str | None = None, show: bool = True) -> None:
         """Compute latent representations and save a t-SNE scatter plot.
 
         Args:
             mdata: Multi-omics object.
-            color: Column in `mdata.obs` to use for colouring samples.
-            filename: Output path prefix (a `.png` suffix is appended).
-            title: Plot title.
+            color: Column in `mdata.obs` to use for colouring samples. By default, use the label column.
             show: Display the figure interactively.
         """
         from customics.visualization import plot_representation as _plot
 
-        _plot(self, mdata, color, filename, title, show=show)
+        _plot(self, mdata, color or mdata.uns[Keys.LABEL], show=show)
 
-    def stratify(
-        self,
-        mdata: MuData,
-        plot_title: str = "",
-        save_path: str | None = None,
-        show: bool = True,
-    ) -> None:
+    def stratify(self, mdata: MuData, show: bool = True) -> None:
         """Stratify patients by predicted risk and plot Kaplan-Meier curves.
 
         Args:
             mdata: Multi-omics object.
-            plot_title: Title prefix for the figure.
-            save_path: Save the figure to this path when provided.
             show: Display the figure interactively.
         """
         from customics.visualization import plot_survival_stratification as _plot
 
-        _plot(self, mdata, mdata.uns[Keys.EVENT], mdata.uns[Keys.SURV_TIME], plot_title, save_path, show)
+        _plot(self, mdata, show)
 
     # ---------------------------------------------------------------------- #
     # Serialisation
