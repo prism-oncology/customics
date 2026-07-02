@@ -1,5 +1,9 @@
 # Visualise API
 
+## Cohort Overview
+
+::: customics.plot_cohort_overview
+
 ## Latent Representation
 
 ::: customics.CustOMICS.get_latent_representation
