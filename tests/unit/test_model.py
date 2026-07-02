@@ -146,7 +146,7 @@ class TestCustOMICSInstantiation:
 
 
 class TestCustOMICSFit:
-    def test_fit_returns_self(
+    def test_fit_returns_none(
         self, source_params, central_params, classif_params, surv_params, train_params, device, mdata
     ):
         model = CustOMICS(
@@ -163,7 +163,7 @@ class TestCustOMICSFit:
             n_epochs=2,
             batch_size=8,
         )
-        assert result is model
+        assert result is None
 
     def test_history_populated(
         self, source_params, central_params, classif_params, surv_params, train_params, device, mdata

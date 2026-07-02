@@ -333,7 +333,7 @@ class CustOMICS(nn.Module):
         batch_size: int = 32,
         n_epochs: int = 30,
         verbose: bool = True,
-    ) -> CustOMICS:
+    ) -> None:
         """Train the customics model.
 
         Args:
@@ -342,9 +342,6 @@ class CustOMICS(nn.Module):
             batch_size: Mini-batch size.
             n_epochs: Number of training epochs.
             verbose: Log epoch-level loss when True.
-
-        Returns:
-            `self` (enables method chaining).
 
         Raises:
             DataValidationError: If required columns are missing or samples don't overlap.
@@ -400,8 +397,6 @@ class CustOMICS(nn.Module):
                     logger.info("Epoch %d/%d | train=%.4f", epoch + 1, n_epochs, train_loss)
 
         self._is_fitted = True
-
-        return self
 
     def _validate_fit_inputs(self, mdata: MuData) -> tuple[str, str, str]:
         if not all(key in mdata.uns for key in [Keys.LABEL, Keys.EVENT, Keys.SURV_TIME]):
