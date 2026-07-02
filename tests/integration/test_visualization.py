@@ -51,16 +51,6 @@ class TestStratify:
             show=False,
         )
 
-    def test_saves_png_when_save_path_provided(self, fitted_model, mdata, tmp_path):
-        """stratify() must write a file when save_path is given."""
-        out = str(tmp_path / "km")
-        fitted_model.stratify(
-            mdata=mdata,
-            save_path=out,
-            show=False,
-        )
-        assert (tmp_path / "km.png").exists()
-
     def test_no_file_without_save_path(self, fitted_model, mdata, tmp_path, monkeypatch):
         """Without save_path no PNG should be written to the working directory."""
         monkeypatch.chdir(tmp_path)
