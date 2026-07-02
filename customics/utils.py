@@ -107,6 +107,38 @@ def get_sub_mudata(mdata: MuData, shared_samples: list[str]) -> MuData:
     return sub
 
 
+def split_mudata(
+    mdata: MuData,
+    test_size: float = 0.20,
+    val_size: float = 0.15,
+    random_state: int | None = 42,
+) -> tuple[MuData, MuData, MuData]:
+    """Split a MuData into train/validation/test subsets by shared samples.
+
+    Samples present in every modality are split into a test set, then the
+    remaining samples are split into train and validation sets.
+
+    Args:
+        mdata: Multi-omics object to split.
+        test_size: Fraction of shared samples held out for the test set.
+        val_size: Fraction of the remaining (non-test) samples used for validation.
+        random_state: Seed for reproducible splits.
+
+    Returns:
+        `(mdata_train, mdata_val, mdata_test)`.
+    """
+    shared_samples = get_shared_samples(mdata)
+
+    samples_train, samples_test = train_test_split(shared_samples, test_size=test_size, random_state=random_state)
+    samples_train, samples_val = train_test_split(samples_train, test_size=val_size, random_state=random_state)
+
+    return (
+        get_sub_mudata(mdata, samples_train),
+        get_sub_mudata(mdata, samples_val),
+        get_sub_mudata(mdata, samples_test),
+    )
+
+
 # ---------------------------------------------------------------------------
 # Cross-validation split management
 # ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import logging
 import mudata
 from ._logging import configure_logger
 from . import datasets, metrics
-from .utils import get_shared_samples, get_sub_mudata, toy_dataset, prepare_input
+from .utils import get_shared_samples, get_sub_mudata, split_mudata, toy_dataset, prepare_input
 from .visualization import plot_cohort_overview
 from .model import CustOMICS
 
