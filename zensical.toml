@@ -5,7 +5,7 @@ repo_url = "https://github.com/prism-oncology/customics"
 site_url = "https://github.com/prism-oncology/customics"
 site_description = "CustOmics Documentation"
 site_author = "Hakim Benkirane"
-copyright = "Copyright &copy; 2026 Hakim Benkirane"
+copyright = "Copyright &copy; 2026 Hakim Benkirane, Ali Hamraoui"
 extra_css = ["stylesheets/style.css"]
 
 
@@ -50,7 +50,8 @@ toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
 [[project.theme.palette]]
-scheme = "default"
+scheme = "slate"
+primary = "indigo"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
 
