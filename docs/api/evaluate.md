@@ -1,4 +1,4 @@
-# Evaluate API
+# Evaluate
 
 ## Classification and Survival Evaluation
 

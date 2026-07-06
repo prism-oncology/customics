@@ -1,4 +1,4 @@
-# Train API
+# Train
 
 ## Model Construction
 
