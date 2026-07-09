@@ -1,4 +1,4 @@
-# Visualise API
+# Visualise
 
 ## Cohort Overview
 

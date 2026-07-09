@@ -1,6 +1,6 @@
 [project]
 name = "customics"
-version = "0.1.0"
+version = "0.1.1"
 description = "A versatile deep-learning based strategy for multi-omics integration"
 readme = "README.md"
 license = { file = "LICENSE" }

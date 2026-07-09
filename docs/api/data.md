@@ -1,4 +1,4 @@
-# Data API
+# Data
 
 ## Loading
 
