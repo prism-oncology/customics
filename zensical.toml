@@ -5,7 +5,7 @@ repo_url = "https://github.com/prism-oncology/customics"
 site_url = "https://github.com/prism-oncology/customics"
 site_description = "CustOmics Documentation"
 site_author = "Hakim Benkirane"
-copyright = "Copyright &copy; 2026 Hakim Benkirane, Ali Hamraoui"
+copyright = "Copyright &copy; 2026 PRISM Institute"
 extra_css = ["stylesheets/style.css"]
 
 
