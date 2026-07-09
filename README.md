@@ -9,7 +9,7 @@
 
 [![PyPI version](https://badge.fury.io/py/customics.svg)](https://badge.fury.io/py/customics)
 [![Downloads](https://static.pepy.tech/badge/customics)](https://pepy.tech/project/customics)
-[![Docs](https://img.shields.io/badge/docs-Zensical-526CFE?logo=materialformkdocs&logoColor=white)](https://prism-oncology.github.io/customics/)
+[![documentation](https://img.shields.io/badge/docs-zensical-FF9100.svg?style=flat)](https://prism-oncology.github.io/customics/)
 [![Build](https://github.com/prism-oncology/customics/actions/workflows/ci.yml/badge.svg)](https://github.com/prism-oncology/customics/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
