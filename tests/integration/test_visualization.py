@@ -17,7 +17,7 @@ matplotlib.use("Agg")
 class TestPlotRepresentation:
     def test_saves_png(self, fitted_model: CustOMICS, mdata):
         """plot_representation() must write a .png file to the given path."""
-        fitted_model.plot_representation(mdata=mdata, color="label", show=False)
+        fitted_model.plot_representation(mdata=mdata, color="label", show=False, perplexity=10)
 
     def test_latent_representation_shape(self, fitted_model: CustOMICS, mdata):
         """get_latent_representation() must return (n_samples, latent_dim) array."""
@@ -37,7 +37,7 @@ class TestPlotRepresentation:
 
         z1 = fitted_model.get_latent_representation(mdata)
 
-        fitted_model.plot_representation(mdata=mdata, color="label", show=False)
+        fitted_model.plot_representation(mdata=mdata, color="label", show=False, perplexity=10)
 
         z2 = fitted_model.get_latent_representation(mdata)
         np.testing.assert_array_equal(z1, z2)
