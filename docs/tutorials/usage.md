@@ -433,36 +433,36 @@ Then, we [`fit`][customics.CustOMICS.fit] the model. Here, 30 epochs is enough f
 model.fit(mdata=mdata_train, omics_val=mdata_val, n_epochs=30)
 ```
 
-    [36;20m[INFO] (customics.model)[0m Epoch 1/30 | train=30.3651 | val=31.6658
-    [36;20m[INFO] (customics.model)[0m Epoch 2/30 | train=22.8299 | val=28.7735
-    [36;20m[INFO] (customics.model)[0m Epoch 3/30 | train=21.4399 | val=23.9864
-    [36;20m[INFO] (customics.model)[0m Epoch 4/30 | train=17.5760 | val=20.2520
-    [36;20m[INFO] (customics.model)[0m Epoch 5/30 | train=17.0057 | val=17.4308
-    [36;20m[INFO] (customics.model)[0m Epoch 6/30 | train=14.8009 | val=14.4931
-    [36;20m[INFO] (customics.model)[0m Epoch 7/30 | train=12.3623 | val=13.4749
-    [36;20m[INFO] (customics.model)[0m Epoch 8/30 | train=13.2549 | val=12.3910
-    [36;20m[INFO] (customics.model)[0m Epoch 9/30 | train=10.6632 | val=12.0587
-    [36;20m[INFO] (customics.model)[0m Epoch 10/30 | train=11.2786 | val=10.1326
-    [36;20m[INFO] (customics.model)[0m Epoch 11/30 | train=9.9780 | val=9.5506
-    [36;20m[INFO] (customics.model)[0m Epoch 12/30 | train=9.1207 | val=9.5418
-    [36;20m[INFO] (customics.model)[0m Epoch 13/30 | train=8.1369 | val=10.1138
-    [36;20m[INFO] (customics.model)[0m Epoch 14/30 | train=9.1553 | val=10.4119
-    [36;20m[INFO] (customics.model)[0m Epoch 15/30 | train=8.2390 | val=9.4450
-    [36;20m[INFO] (customics.model)[0m Epoch 16/30 | train=8.7560 | val=8.9667
-    [36;20m[INFO] (customics.model)[0m Epoch 17/30 | train=5.0455 | val=7.1915
-    [36;20m[INFO] (customics.model)[0m Epoch 18/30 | train=3.6820 | val=6.1265
-    [36;20m[INFO] (customics.model)[0m Epoch 19/30 | train=3.7814 | val=5.3548
-    [36;20m[INFO] (customics.model)[0m Epoch 20/30 | train=4.0373 | val=4.4529
-    [36;20m[INFO] (customics.model)[0m Epoch 21/30 | train=3.7146 | val=3.9884
-    [36;20m[INFO] (customics.model)[0m Epoch 22/30 | train=4.0055 | val=3.7771
-    [36;20m[INFO] (customics.model)[0m Epoch 23/30 | train=3.0194 | val=3.9597
-    [36;20m[INFO] (customics.model)[0m Epoch 24/30 | train=3.9632 | val=3.6811
-    [36;20m[INFO] (customics.model)[0m Epoch 25/30 | train=3.7829 | val=3.7216
-    [36;20m[INFO] (customics.model)[0m Epoch 26/30 | train=2.7493 | val=3.5652
-    [36;20m[INFO] (customics.model)[0m Epoch 27/30 | train=4.4148 | val=3.5811
-    [36;20m[INFO] (customics.model)[0m Epoch 28/30 | train=3.6309 | val=3.5699
-    [36;20m[INFO] (customics.model)[0m Epoch 29/30 | train=4.0113 | val=3.3203
-    [36;20m[INFO] (customics.model)[0m Epoch 30/30 | train=3.4999 | val=2.9919
+    [36;20m[INFO] (customics.model)[0m Epoch 1/30 | train=31.8966 | val=31.5441
+    [36;20m[INFO] (customics.model)[0m Epoch 2/30 | train=24.1114 | val=28.9794
+    [36;20m[INFO] (customics.model)[0m Epoch 3/30 | train=20.3283 | val=25.5637
+    [36;20m[INFO] (customics.model)[0m Epoch 4/30 | train=17.8173 | val=21.5200
+    [36;20m[INFO] (customics.model)[0m Epoch 5/30 | train=15.0374 | val=19.2554
+    [36;20m[INFO] (customics.model)[0m Epoch 6/30 | train=15.4095 | val=16.4640
+    [36;20m[INFO] (customics.model)[0m Epoch 7/30 | train=13.9080 | val=13.7618
+    [36;20m[INFO] (customics.model)[0m Epoch 8/30 | train=11.4857 | val=13.0958
+    [36;20m[INFO] (customics.model)[0m Epoch 9/30 | train=10.5219 | val=12.3809
+    [36;20m[INFO] (customics.model)[0m Epoch 10/30 | train=10.1143 | val=12.6912
+    [36;20m[INFO] (customics.model)[0m Epoch 11/30 | train=9.4561 | val=12.2704
+    [36;20m[INFO] (customics.model)[0m Epoch 12/30 | train=10.0804 | val=11.1351
+    [36;20m[INFO] (customics.model)[0m Epoch 13/30 | train=11.6457 | val=9.4894
+    [36;20m[INFO] (customics.model)[0m Epoch 14/30 | train=8.2035 | val=9.1322
+    [36;20m[INFO] (customics.model)[0m Epoch 15/30 | train=9.6226 | val=9.7770
+    [36;20m[INFO] (customics.model)[0m Epoch 16/30 | train=9.3975 | val=8.0763
+    [36;20m[INFO] (customics.model)[0m Epoch 17/30 | train=5.9121 | val=6.8076
+    [36;20m[INFO] (customics.model)[0m Epoch 18/30 | train=4.1012 | val=5.8541
+    [36;20m[INFO] (customics.model)[0m Epoch 19/30 | train=5.0151 | val=4.8920
+    [36;20m[INFO] (customics.model)[0m Epoch 20/30 | train=3.8263 | val=4.7237
+    [36;20m[INFO] (customics.model)[0m Epoch 21/30 | train=3.5487 | val=4.2052
+    [36;20m[INFO] (customics.model)[0m Epoch 22/30 | train=3.9993 | val=3.8718
+    [36;20m[INFO] (customics.model)[0m Epoch 23/30 | train=3.6906 | val=3.4935
+    [36;20m[INFO] (customics.model)[0m Epoch 24/30 | train=3.2725 | val=3.4525
+    [36;20m[INFO] (customics.model)[0m Epoch 25/30 | train=3.9093 | val=3.3038
+    [36;20m[INFO] (customics.model)[0m Epoch 26/30 | train=2.8886 | val=3.4324
+    [36;20m[INFO] (customics.model)[0m Epoch 27/30 | train=5.2717 | val=2.9889
+    [36;20m[INFO] (customics.model)[0m Epoch 28/30 | train=6.2037 | val=2.5603
+    [36;20m[INFO] (customics.model)[0m Epoch 29/30 | train=4.5925 | val=2.4913
+    [36;20m[INFO] (customics.model)[0m Epoch 30/30 | train=4.5574 | val=2.6298
 
 
 [`plot_loss`][customics.CustOMICS.plot_loss] plots the train/validation loss curves to check for overfitting.
@@ -521,7 +521,7 @@ surv_metrics = model.evaluate(mdata=mdata_test, task="survival", batch_size=1024
 print("C-index :", surv_metrics)
 ```
 
-    C-index : 0.4574468085106383
+    C-index : 0.5957446808510638
 
 
 ## Latent space
@@ -535,12 +535,129 @@ features. By default, it uses the provided label.
 
 
 ```python
-model.plot_representation(mdata=mdata)
+mdata.obs
 ```
 
 
 
-![png](usage_files/usage_30_0.png)
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>subjects</th>
+      <th>cluster.id</th>
+      <th>OS</th>
+      <th>OS.time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>subject1</th>
+      <td>1</td>
+      <td>5</td>
+      <td>0</td>
+      <td>2531</td>
+    </tr>
+    <tr>
+      <th>subject2</th>
+      <td>2</td>
+      <td>5</td>
+      <td>1</td>
+      <td>759</td>
+    </tr>
+    <tr>
+      <th>subject3</th>
+      <td>3</td>
+      <td>5</td>
+      <td>1</td>
+      <td>2453</td>
+    </tr>
+    <tr>
+      <th>subject4</th>
+      <td>4</td>
+      <td>3</td>
+      <td>0</td>
+      <td>220</td>
+    </tr>
+    <tr>
+      <th>subject5</th>
+      <td>5</td>
+      <td>5</td>
+      <td>0</td>
+      <td>2431</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>subject96</th>
+      <td>96</td>
+      <td>2</td>
+      <td>0</td>
+      <td>445</td>
+    </tr>
+    <tr>
+      <th>subject97</th>
+      <td>97</td>
+      <td>4</td>
+      <td>0</td>
+      <td>1159</td>
+    </tr>
+    <tr>
+      <th>subject98</th>
+      <td>98</td>
+      <td>3</td>
+      <td>1</td>
+      <td>530</td>
+    </tr>
+    <tr>
+      <th>subject99</th>
+      <td>99</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1149</td>
+    </tr>
+    <tr>
+      <th>subject100</th>
+      <td>100</td>
+      <td>1</td>
+      <td>0</td>
+      <td>2893</td>
+    </tr>
+  </tbody>
+</table>
+<p>100 rows × 4 columns</p>
+</div>
+
+
+
+
+```python
+model.plot_representation(mdata=mdata, method='tsne')
+```
+
+
+
+![png](usage_files/usage_31_0.png)
 
 
 
@@ -560,7 +677,7 @@ model.stratify(mdata=mdata)
 
 
 
-![png](usage_files/usage_32_0.png)
+![png](usage_files/usage_33_0.png)
 
 
 
@@ -584,7 +701,7 @@ model.explain(sample_ids=shared_samples, mdata=mdata, source="rna", subtype="1")
 
 
 
-![png](usage_files/usage_34_1.png)
+![png](usage_files/usage_35_1.png)
 
 
 
@@ -601,7 +718,7 @@ model.explain(sample_ids=shared_samples, mdata=mdata, source="protein", subtype=
 
 
 
-![png](usage_files/usage_36_1.png)
+![png](usage_files/usage_37_1.png)
 
 
 
@@ -618,7 +735,7 @@ model.explain(sample_ids=shared_samples, mdata=mdata, source="methyl", subtype="
 
 
 
-![png](usage_files/usage_38_1.png)
+![png](usage_files/usage_39_1.png)
 
 
 

@@ -54,15 +54,29 @@ def plot_loss(history: list, switch_epoch: int, figsize: tuple[float, float], sh
         plt.show()
 
 
-def plot_representation(model: CustOMICS, mdata: MuData, color: str, show: bool = True) -> None:
-    """Compute the latent representation and save a t-SNE scatter plot.
+def plot_representation(
+    model: CustOMICS,
+    mdata: MuData,
+    color: str,
+    method: str = "tsne",
+    show: bool = True,
+    **kwargs,
+) -> None:
+    """Compute the latent representation and plot a t-SNE or UMAP scatter plot.
 
     Args:
         model: A fitted model.
         mdata: Multi-omics object.
         color: Column in `mdata.obs` to use for colouring.
+        method: Embedding to compute and plot, either `"tsne"` or `"umap"`.
         show: If True, display the figure interactively.
+        **kwargs: Extra keyword arguments forwarded to the embedding routine
+            (`sc.tl.tsne` or `sc.tl.umap`).
     """
+    method = method.lower()
+    if method not in ("tsne", "umap"):
+        raise ValueError(f"method must be 'tsne' or 'umap', got {method!r}")
+
     from customics.utils import get_shared_samples
 
     shared_samples = get_shared_samples(mdata)
@@ -72,9 +86,15 @@ def plot_representation(model: CustOMICS, mdata: MuData, color: str, show: bool 
 
     sc.pp.pca(adata)
     sc.pp.neighbors(adata)
-    sc.tl.umap(adata)
 
-    sc.pl.umap(adata, color=color, show=show)
+    if method == "tsne":
+        # scales learning rate to n_samples (for small samples).
+        kwargs.setdefault("learning_rate", "auto")
+        sc.tl.tsne(adata, **kwargs)
+        sc.pl.tsne(adata, color=color, show=show)
+    else:
+        sc.tl.umap(adata, **kwargs)
+        sc.pl.umap(adata, color=color, show=show)
 
 
 def plot_survival_stratification(

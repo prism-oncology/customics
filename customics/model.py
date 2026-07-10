@@ -712,17 +712,22 @@ class CustOMICS(nn.Module):
 
         _plot(self.history, self.switch_epoch, show=show, figsize=figsize)
 
-    def plot_representation(self, mdata: MuData, color: str | None = None, show: bool = True) -> None:
+    def plot_representation(
+        self, mdata: MuData, method: str = "tsne", color: str | None = None, show: bool = True, **kwargs
+    ) -> None:
         """Compute latent representations and save a t-SNE scatter plot.
 
         Args:
             mdata: Multi-omics object.
+            method: Embedding to compute and plot, either `"tsne"` or `"umap"`.
             color: Column in `mdata.obs` to use for colouring samples. By default, use the label column.
             show: Display the figure interactively.
+            **kwargs: Extra keyword arguments forwarded to the embedding routine
+            (`sc.tl.tsne` or `sc.tl.umap`).
         """
         from customics.visualization import plot_representation as _plot
 
-        _plot(self, mdata, color or mdata.uns[Keys.LABEL], show=show)
+        _plot(self, mdata, color or mdata.uns[Keys.LABEL], method, show=show, **kwargs)
 
     def stratify(self, mdata: MuData, show: bool = True) -> None:
         """Stratify patients by predicted risk and plot Kaplan-Meier curves.
