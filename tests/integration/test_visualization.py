@@ -1,7 +1,7 @@
 """Integration tests for model visualisation methods.
 
 Covers:
-- model.plot_representation() — t-SNE latent-space scatter
+- model.plot_representation() — UMAP latent-space scatter
 - model.stratify()            — Kaplan-Meier risk stratification
 - model.plot_loss()           — training-loss curve
 """

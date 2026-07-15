@@ -55,7 +55,7 @@ def plot_loss(history: list, switch_epoch: int, figsize: tuple[float, float], sh
 
 
 def plot_representation(model: CustOMICS, mdata: MuData, color: str, show: bool = True) -> None:
-    """Compute the latent representation and save a t-SNE scatter plot.
+    """Compute the latent representation and save a UMAP scatter plot.
 
     Args:
         model: A fitted model.

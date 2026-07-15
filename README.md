@@ -38,7 +38,7 @@ pip install customics
 - **Multi-omics integration** — a hierarchical architecture (per-source autoencoders feeding a central VAE) that fuses heterogeneous, high-dimensional modalities into a shared latent space.
 - **Built-in tasks** — tumor classification and survival prediction (Cox), with one scikit-learn-style `fit` / `predict` / `evaluate` API.
 - **Explainability** — per-source feature attribution via SHAP.
-- **Visualization** — latent-space projection (t-SNE) and Kaplan-Meier survival stratification out of the box.
+- **Visualization** — latent-space projection (UMAP) and Kaplan-Meier survival stratification out of the box.
 
 
 ## Usage
