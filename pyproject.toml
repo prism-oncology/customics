@@ -51,7 +51,7 @@ Repository = "https://github.com/prism-oncology/customics"
 
 [tool.poe.tasks]
 docs = "zensical serve"
-nb2md = "jupyter nbconvert docs/tutorials/usage.ipynb --to markdown"
+nb2md = { shell = "rm -rf docs/tutorials/usage_files && jupyter nbconvert docs/tutorials/usage.ipynb --to markdown" }
 pre-commit = "pre-commit run --all-files"
 test = "pytest --cov --cov-config=pyproject.toml --cov-report=html --disable-warnings"
 test_no_multimodal = "pytest -m 'not multimodal' --cov --cov-config=pyproject.toml --cov-report=html --disable-warnings"

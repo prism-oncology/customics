@@ -433,36 +433,36 @@ Then, we [`fit`][customics.CustOMICS.fit] the model. Here, 30 epochs is enough f
 model.fit(mdata=mdata_train, omics_val=mdata_val, n_epochs=30)
 ```
 
-    [36;20m[INFO] (customics.model)[0m Epoch 1/30 | train=30.3651 | val=31.6658
-    [36;20m[INFO] (customics.model)[0m Epoch 2/30 | train=22.8299 | val=28.7735
-    [36;20m[INFO] (customics.model)[0m Epoch 3/30 | train=21.4399 | val=23.9864
-    [36;20m[INFO] (customics.model)[0m Epoch 4/30 | train=17.5760 | val=20.2520
-    [36;20m[INFO] (customics.model)[0m Epoch 5/30 | train=17.0057 | val=17.4308
-    [36;20m[INFO] (customics.model)[0m Epoch 6/30 | train=14.8009 | val=14.4931
-    [36;20m[INFO] (customics.model)[0m Epoch 7/30 | train=12.3623 | val=13.4749
-    [36;20m[INFO] (customics.model)[0m Epoch 8/30 | train=13.2549 | val=12.3910
-    [36;20m[INFO] (customics.model)[0m Epoch 9/30 | train=10.6632 | val=12.0587
-    [36;20m[INFO] (customics.model)[0m Epoch 10/30 | train=11.2786 | val=10.1326
-    [36;20m[INFO] (customics.model)[0m Epoch 11/30 | train=9.9780 | val=9.5506
-    [36;20m[INFO] (customics.model)[0m Epoch 12/30 | train=9.1207 | val=9.5418
-    [36;20m[INFO] (customics.model)[0m Epoch 13/30 | train=8.1369 | val=10.1138
-    [36;20m[INFO] (customics.model)[0m Epoch 14/30 | train=9.1553 | val=10.4119
-    [36;20m[INFO] (customics.model)[0m Epoch 15/30 | train=8.2390 | val=9.4450
-    [36;20m[INFO] (customics.model)[0m Epoch 16/30 | train=8.7560 | val=8.9667
-    [36;20m[INFO] (customics.model)[0m Epoch 17/30 | train=5.0455 | val=7.1915
-    [36;20m[INFO] (customics.model)[0m Epoch 18/30 | train=3.6820 | val=6.1265
-    [36;20m[INFO] (customics.model)[0m Epoch 19/30 | train=3.7814 | val=5.3548
-    [36;20m[INFO] (customics.model)[0m Epoch 20/30 | train=4.0373 | val=4.4529
-    [36;20m[INFO] (customics.model)[0m Epoch 21/30 | train=3.7146 | val=3.9884
-    [36;20m[INFO] (customics.model)[0m Epoch 22/30 | train=4.0055 | val=3.7771
-    [36;20m[INFO] (customics.model)[0m Epoch 23/30 | train=3.0194 | val=3.9597
-    [36;20m[INFO] (customics.model)[0m Epoch 24/30 | train=3.9632 | val=3.6811
-    [36;20m[INFO] (customics.model)[0m Epoch 25/30 | train=3.7829 | val=3.7216
-    [36;20m[INFO] (customics.model)[0m Epoch 26/30 | train=2.7493 | val=3.5652
-    [36;20m[INFO] (customics.model)[0m Epoch 27/30 | train=4.4148 | val=3.5811
-    [36;20m[INFO] (customics.model)[0m Epoch 28/30 | train=3.6309 | val=3.5699
-    [36;20m[INFO] (customics.model)[0m Epoch 29/30 | train=4.0113 | val=3.3203
-    [36;20m[INFO] (customics.model)[0m Epoch 30/30 | train=3.4999 | val=2.9919
+    [36;20m[INFO] (customics.model)[0m Epoch 1/30 | train=28.3510 | val=31.1127
+    [36;20m[INFO] (customics.model)[0m Epoch 2/30 | train=24.1300 | val=27.2528
+    [36;20m[INFO] (customics.model)[0m Epoch 3/30 | train=18.8413 | val=23.2119
+    [36;20m[INFO] (customics.model)[0m Epoch 4/30 | train=18.1666 | val=19.2596
+    [36;20m[INFO] (customics.model)[0m Epoch 5/30 | train=15.9653 | val=15.0313
+    [36;20m[INFO] (customics.model)[0m Epoch 6/30 | train=15.6716 | val=13.5321
+    [36;20m[INFO] (customics.model)[0m Epoch 7/30 | train=14.6013 | val=12.3413
+    [36;20m[INFO] (customics.model)[0m Epoch 8/30 | train=11.1737 | val=12.8830
+    [36;20m[INFO] (customics.model)[0m Epoch 9/30 | train=12.7438 | val=10.9623
+    [36;20m[INFO] (customics.model)[0m Epoch 10/30 | train=13.4023 | val=10.7329
+    [36;20m[INFO] (customics.model)[0m Epoch 11/30 | train=9.2252 | val=10.8890
+    [36;20m[INFO] (customics.model)[0m Epoch 12/30 | train=8.1664 | val=10.7212
+    [36;20m[INFO] (customics.model)[0m Epoch 13/30 | train=9.6589 | val=10.0334
+    [36;20m[INFO] (customics.model)[0m Epoch 14/30 | train=7.6694 | val=9.2598
+    [36;20m[INFO] (customics.model)[0m Epoch 15/30 | train=6.7208 | val=9.3922
+    [36;20m[INFO] (customics.model)[0m Epoch 16/30 | train=7.0771 | val=8.8616
+    [36;20m[INFO] (customics.model)[0m Epoch 17/30 | train=5.2917 | val=6.7025
+    [36;20m[INFO] (customics.model)[0m Epoch 18/30 | train=3.6073 | val=5.8584
+    [36;20m[INFO] (customics.model)[0m Epoch 19/30 | train=4.7366 | val=5.4206
+    [36;20m[INFO] (customics.model)[0m Epoch 20/30 | train=3.5073 | val=4.9767
+    [36;20m[INFO] (customics.model)[0m Epoch 21/30 | train=3.4327 | val=4.6913
+    [36;20m[INFO] (customics.model)[0m Epoch 22/30 | train=4.1429 | val=4.2433
+    [36;20m[INFO] (customics.model)[0m Epoch 23/30 | train=3.5578 | val=4.3957
+    [36;20m[INFO] (customics.model)[0m Epoch 24/30 | train=4.4933 | val=3.8083
+    [36;20m[INFO] (customics.model)[0m Epoch 25/30 | train=3.6876 | val=3.6345
+    [36;20m[INFO] (customics.model)[0m Epoch 26/30 | train=3.9331 | val=3.3014
+    [36;20m[INFO] (customics.model)[0m Epoch 27/30 | train=3.1734 | val=4.0912
+    [36;20m[INFO] (customics.model)[0m Epoch 28/30 | train=2.7662 | val=3.7184
+    [36;20m[INFO] (customics.model)[0m Epoch 29/30 | train=2.7811 | val=3.6162
+    [36;20m[INFO] (customics.model)[0m Epoch 30/30 | train=4.8611 | val=2.9665
 
 
 [`plot_loss`][customics.CustOMICS.plot_loss] plots the train/validation loss curves to check for overfitting.
@@ -521,7 +521,7 @@ surv_metrics = model.evaluate(mdata=mdata_test, task="survival", batch_size=1024
 print("C-index :", surv_metrics)
 ```
 
-    C-index : 0.4574468085106383
+    C-index : 0.7021276595744681
 
 
 ## Latent space
@@ -529,9 +529,8 @@ print("C-index :", surv_metrics)
 [`get_latent_representation`][customics.CustOMICS.get_latent_representation] encodes every sample in `mdata` through the
 trained central VAE and returns a NumPy array of shape `(n_samples, latent_dim)`.
 
-[`plot_representation`][customics.CustOMICS.plot_representation] runs t-SNE on that array and colours each point by the
-clinical label — a quick sanity check that the model has learned subtype-discriminative
-features. By default, it uses the provided label.
+[`plot_representation`][customics.CustOMICS.plot_representation] runs UMAP on that array and colours each point by the
+clinical label, a quick sanity check that the model has learned subtype-discriminative features. By default, it uses the provided label.
 
 
 ```python

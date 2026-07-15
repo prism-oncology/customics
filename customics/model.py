@@ -713,7 +713,7 @@ class CustOMICS(nn.Module):
         _plot(self.history, self.switch_epoch, show=show, figsize=figsize)
 
     def plot_representation(self, mdata: MuData, color: str | None = None, show: bool = True) -> None:
-        """Compute latent representations and save a t-SNE scatter plot.
+        """Compute latent representations and save a UMAP scatter plot.
 
         Args:
             mdata: Multi-omics object.

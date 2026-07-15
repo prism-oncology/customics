@@ -156,7 +156,7 @@ A Cox proportional-hazards network that maps **z** to a log-hazard score.
 | Training loss oscillates wildly | Learning rate too high | Reduce `lr` to `5e-4` or `1e-4` |
 | Validation loss diverges after `switch` | Phase 2 destabilises under-trained source AEs | Increase `switch` (more phase-1 epochs) |
 | Classification metrics plateau near chance | `lambda` (classif) too low, or `latent_dim` too small | Increase `classif_params["lambda"]` or `central_params["latent_dim"]` |
-| t-SNE shows no cluster structure | Central VAE not converging | Increase `beta`, or give more phase-2 epochs by reducing `switch` |
+| UMAP shows no cluster structure | Central VAE not converging | Increase `beta`, or give more phase-2 epochs by reducing `switch` |
 | `explain()` returns SHAP values near zero | Source `latent_dim` too large relative to dataset | Reduce `latent_dim`; sparser representations are more interpretable |
 | Memory error on GPU | Batch size or model too large | Reduce `batch_size`; reduce `hidden_dim` |
 | BatchNorm error with small batches | `norm=True` with fewer than 8 samples per batch | Set `norm=False` or increase `batch_size` |
