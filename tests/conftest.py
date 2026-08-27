@@ -4,15 +4,12 @@ All fixtures use tiny synthetic data so tests run fast on CPU without any
 external files.
 """
 
-import mudata
 import numpy as np
 import pandas as pd
 import pytest
 import torch
 from anndata import AnnData
 from mudata import MuData
-
-mudata.set_options(pull_on_update=False)
 
 N_SAMPLES = 20
 N_FEATURES_RNA = 50
