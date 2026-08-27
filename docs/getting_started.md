@@ -1,6 +1,6 @@
 ## Installing customics
 
-`customics` can be installed from `PyPI` on all OS, for any Python version `>=3.11`.
+`customics` can be installed from `PyPI` on all OS, for any Python version `>=3.12`.
 
 !!! note "Advice (optional)"
 

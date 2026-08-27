@@ -27,7 +27,7 @@ Check [customics's documentation](https://prism-oncology.github.io/customics/) t
 
 ## Installation
 
-`customics` can be installed from `PyPI` on all OS, for any Python version `>=3.11`:
+`customics` can be installed from `PyPI` on all OS, for any Python version `>=3.12`:
 
 ```bash
 pip install customics
